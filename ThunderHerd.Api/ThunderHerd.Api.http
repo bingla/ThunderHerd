@@ -1,0 +1,6 @@
+@ThunderHerd.Api_HostAddress = http://localhost:5231
+
+GET {{ThunderHerd.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
