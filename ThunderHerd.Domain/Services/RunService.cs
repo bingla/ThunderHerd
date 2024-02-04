@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using ThunderHerd.Core;
-using ThunderHerd.Core.Helpers;
+using ThunderHerd.Core.Extensions;
 using ThunderHerd.Core.Models.Dtos;
 using ThunderHerd.Core.Models.Settings;
 using ThunderHerd.Core.Options;
@@ -122,8 +122,8 @@ namespace ThunderHerd.Domain.Services
             // Group and calculate results
             var timeSpan = TimeSpan.FromSeconds(1);
             var resultList = responseList
-                .OrderBy(p => long.Parse(ItemHelper.GetHeaderValues(p, Globals.HeaderNames.StartTimeInTicks)))
-                .GroupBy(p => long.Parse(ItemHelper.GetHeaderValues(p, Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks, p => p)
+                .OrderBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks)
+                .GroupBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks, p => p)
                 .Select(p => RunResult.TestResultSlotItem.Map(p, timeSpan))
                 .OrderBy(p => p.Tick)
                 .ToHashSet();
