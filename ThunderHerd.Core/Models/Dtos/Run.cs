@@ -7,6 +7,7 @@ namespace ThunderHerd.Core.Models.Dtos
     {
         public string? AppId { get; set; }
         public string? AppSecret { get; set; }
+        public string? XApiKey { get; set; }
 
         public int CallsPerSecond { get; set; } = 1;
         public int RunDurationInMinutes { get; set; } = 1;
@@ -22,6 +23,7 @@ namespace ThunderHerd.Core.Models.Dtos
                 {
                     AppId = request.AppId,
                     AppSecret = request.AppSecret,
+                    XApiKey = request.XApiKey,
                     CallsPerSecond = request.CallsPerSecond,
                     RunDurationInMinutes = request.RunDurationInMinutes,
                     WarmupDurationInMinutes = request.WarmupDurationInMinutes,
