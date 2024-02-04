@@ -120,7 +120,7 @@ namespace ThunderHerd.Domain.Services
             var responseList = await Task.WhenAll(tasks);
 
             // Group and calculate results
-            var timeSpan = TimeSpan.FromSeconds(1);
+            var timeSpan = TimeSpan.FromSeconds(_options.Value.TimeSlotSpanInSeconds);
             var resultList = responseList
                 .OrderBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks)
                 .GroupBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks, p => p)
