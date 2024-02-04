@@ -9,6 +9,7 @@ namespace ThunderHerd.Core.Models.Requests
         public string? AppId { get; set; }
         [Required]
         public string? AppSecret { get; set; }
+        public string? ApiKey { get; set; }
 
         public int CallsPerSecond { get; set; } = 1;
         public int RunDurationInMinutes { get; set; }

@@ -1,14 +1,23 @@
-﻿using ThunderHerd.Core.Models.Dtos;
+﻿using Microsoft.Extensions.Options;
+using ThunderHerd.Core;
+using ThunderHerd.Core.Helpers;
+using ThunderHerd.Core.Models.Dtos;
+using ThunderHerd.Core.Models.Settings;
+using ThunderHerd.Core.Options;
 using ThunderHerd.Domain.Interfaces;
 
 namespace ThunderHerd.Domain.Services
 {
     public class RunService : IRunService
     {
+        private readonly IOptions<RunServiceOptions> _options;
         private readonly IHerdClient _client;
 
-        public RunService(IHerdClient client)
+        public RunService(
+            IOptions<RunServiceOptions> options,
+            IHerdClient client)
         {
+            _options = options;
             _client = client;
         }
 
@@ -22,9 +31,20 @@ namespace ThunderHerd.Domain.Services
         {
             ArgumentNullException.ThrowIfNull(run, nameof(run));
 
-            // Clamp values
-            var runDurationInMinutes = run.RunDurationInMinutes <= 0 ? 0 : run.RunDurationInMinutes;
-            var warmupDurationMinutes = run.WarmupDurationInMinutes < 0 ? 0 : run.WarmupDurationInMinutes;
+            // Clamp values to min and max
+            var runDurationInMinutes = run.RunDurationInMinutes > 0
+                ? run.RunDurationInMinutes
+                : 0;
+            runDurationInMinutes = runDurationInMinutes > _options.Value.MaxRunDurationInMinutes
+                ? _options.Value.MaxRunDurationInMinutes
+                : run.RunDurationInMinutes;
+
+            var warmupDurationMinutes = run.WarmupDurationInMinutes > 0
+                ? run.WarmupDurationInMinutes
+                : 0;
+            warmupDurationMinutes = warmupDurationMinutes > _options.Value.MaxWarmupDurationInMinutes
+                ? _options.Value.MaxWarmupDurationInMinutes
+                : run.WarmupDurationInMinutes;
 
             // Make sure that the total duration is at least as large as the
             // warmup phase
@@ -37,8 +57,15 @@ namespace ThunderHerd.Domain.Services
             var warmupDuration = TimeSpan.FromMinutes(warmupDurationMinutes);
             var warmupDurationInSeconds = warmupDuration.TotalSeconds;
 
+            // Clamp callsPerSecond to min and max values
+            var callsPerSecond = run.CallsPerSecond > 1
+                ? run.CallsPerSecond
+                : 1;
+            callsPerSecond = callsPerSecond > _options.Value.MaxCallsPerSecond
+                ? _options.Value.MaxCallsPerSecond
+                : callsPerSecond;
+
             // Calculate how many calls to make each second during the warmup phase
-            var callsPerSecond = run.CallsPerSecond <= 0 ? 1 : run.CallsPerSecond;
             var numCallsToAddPerSecond = Convert.ToDouble(callsPerSecond);
 
             // If we have no warmup phase we ramp up to max calls right away
@@ -49,8 +76,16 @@ namespace ThunderHerd.Domain.Services
                 : callsPerSecond; // Calculate with no warmup
             }
 
+            // Create new request options for httpClient
+            var requestSettings = new HerdClientRequestSettings
+            {
+                AppId = run.AppId,
+                AppSecret = run.AppSecret,
+                ApiKey = run.ApiKey,
+            };
+
             // Begin the test run
-            // and to at least one call step
+            // Add at least one call step
             var runStart = DateTime.Now;
             var runEnd = runStart + runDuration;
             var step = 0;
@@ -63,11 +98,11 @@ namespace ThunderHerd.Domain.Services
                 if (step == 0 || (runStart + TimeSpan.FromSeconds(step) < DateTime.Now))
                 {
                     // Make calls and add to task list
-                    tasks.AddRange(MakeRequest(callStep,numCallsToAddPerSecond,
-                        run.TestCollection, cancellationToken));
+                    tasks.AddRange(MakeRequest(callStep, numCallsToAddPerSecond,
+                        run.TestCollection, requestSettings, cancellationToken));
 
                     // If we have reached the max number of calls her second, we stop at that callStep
-                    // and don't increase it any further
+                    // and don't increase it any further since we don't want to increase the calls each step anymore
                     if (callStep * numCallsToAddPerSecond <= callsPerSecond)
                     {
                         callStep++;
@@ -85,9 +120,12 @@ namespace ThunderHerd.Domain.Services
             var responseList = await Task.WhenAll(tasks);
 
             // Group and calculate results
+            var timeSpan = TimeSpan.FromSeconds(1);
             var resultList = responseList
-                .GroupBy(p => p.RequestMessage?.RequestUri, p => p)
-                .Select(RunResult.TestResultItem.Map)
+                .OrderBy(p => long.Parse(ItemHelper.GetHeaderValues(p, Globals.HeaderNames.StartTimeInTicks)))
+                .GroupBy(p => long.Parse(ItemHelper.GetHeaderValues(p, Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks, p => p)
+                .Select(p => RunResult.TestResultSlotItem.Map(p, timeSpan))
+                .OrderBy(p => p.Tick)
                 .ToHashSet();
 
             return new RunResult
@@ -96,22 +134,28 @@ namespace ThunderHerd.Domain.Services
                 RunCompleted = runEnd,
                 RunDuration = runEnd - runStart,
                 WarmupDuration = warmupDuration,
-                Results = resultList,
+                TimeSlots = resultList,
             };
         }
-        
-        private IEnumerable<Task<HttpResponseMessage>> MakeRequest(int callStep, double numCallsToAddPerSecond,
-            IEnumerable<Run.TestItem> testList, CancellationToken cancellationToken = default)
+
+        private IEnumerable<Task<HttpResponseMessage>> MakeRequest(int callStep,
+            double numCallsToAddPerSecond,
+            IEnumerable<Run.TestItem> testList,
+            HerdClientRequestSettings? settings = default,
+            CancellationToken cancellationToken = default)
         {
-            // Round up so that number of calls are never 0
+            // Round up so that number of calls are never below 1
             var numCallsToAdd = Convert.ToInt32(Math.Ceiling(callStep * numCallsToAddPerSecond));
 
-            // TODO: Makes this a multi thread by using parallel processing, gottago fast!
+            // TODO: Gotta go fast! Makes this a multi thread by using parallel processing, 
             for (var i = 0; i < numCallsToAdd; i++)
             {
-                foreach (var url in testList)
+                foreach (var testLink in testList)
                 {
-                    yield return _client.SendAsync(url.Url, url.Method, cancellationToken);
+                    if (string.IsNullOrEmpty(testLink.Url))
+                        continue;
+
+                    yield return _client.SendAsync(testLink.Url, testLink.Method, settings, cancellationToken);
                 }
             }
         }

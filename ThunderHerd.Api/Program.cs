@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ThunderHerd.Core.Options;
 using ThunderHerd.Domain.Handlers;
 using ThunderHerd.Domain.HttpClients;
 using ThunderHerd.Domain.Interfaces;
@@ -6,21 +7,25 @@ using ThunderHerd.Domain.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add config options
+builder.Services
+    .Configure<RunServiceOptions>(builder.Configuration.GetSection(nameof(RunServiceOptions)));
+
 // Add services to the container.
+// Important that these are added before HttpClient
 builder.Services
     .AddTransient<LogRequestHandler>()
-    .AddScoped<IHerdClient, HerdClient>()
+    .AddTransient<IHerdClient, HerdClient>()
     .AddScoped<IRunService, RunService>();
 
-// Add special httpClient
+// Add typed HttpClient
 builder.Services
     .AddHttpClient<IHerdClient, HerdClient>(httpClient =>
     {
         //httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-        //httpClient.BaseAddress = new Uri("http://www.google.se/");
         httpClient.Timeout = TimeSpan.FromMinutes(10);
     })
-    .SetHandlerLifetime(TimeSpan.FromMinutes(30))
+    .SetHandlerLifetime(TimeSpan.FromMinutes(5))
     .ConfigurePrimaryHttpMessageHandler(() =>
     {
         return new HttpClientHandler
@@ -33,7 +38,7 @@ builder.Services
         };
     })
     .AddHttpMessageHandler<LogRequestHandler>();
-
+//.RemoveAllLoggers(); // Might not be a good idea
 
 builder.Services
     .AddControllers()

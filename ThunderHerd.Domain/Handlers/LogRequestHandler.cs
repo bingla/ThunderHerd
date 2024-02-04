@@ -6,9 +6,7 @@ namespace ThunderHerd.Domain.Handlers
     public class LogRequestHandler : DelegatingHandler
     {
         public LogRequestHandler()
-        {
-
-        }
+        { }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -16,8 +14,7 @@ namespace ThunderHerd.Domain.Handlers
 
             var response = await base.SendAsync(request, cancellationToken);
 
-            request.Headers.Add(Globals.HeaderNames.ElapsedTimeInMilliseconds,
-                stopwatch.Elapsed.TotalMilliseconds.ToString());
+            request.Headers.Add(Globals.HeaderNames.ElapsedTimeInMilliseconds, stopwatch.Elapsed.TotalMilliseconds.ToString());
 
             return response;
         }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ThunderHerd.Core
+﻿namespace ThunderHerd.Core
 {
     public static class Globals
     {
@@ -12,6 +6,7 @@ namespace ThunderHerd.Core
         {
             public const string XApiKey = "X_ApiKey";
             public const string ElapsedTimeInMilliseconds = "X-Elapsed-Time-In-Milliseconds";
+            public const string StartTimeInTicks = "X-Start-Time-In-Ticks";
         }
     }
 }

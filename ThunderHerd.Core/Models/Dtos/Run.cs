@@ -7,6 +7,7 @@ namespace ThunderHerd.Core.Models.Dtos
     {
         public string? AppId { get; set; }
         public string? AppSecret { get; set; }
+        public string? ApiKey { get; set; }
 
         public int CallsPerSecond { get; set; } = 1;
         public int RunDurationInMinutes { get; set; } = 1;
@@ -19,16 +20,17 @@ namespace ThunderHerd.Core.Models.Dtos
             ArgumentNullException.ThrowIfNull(request, nameof(request));
 
             return new Run
-                {
-                    AppId = request.AppId,
-                    AppSecret = request.AppSecret,
-                    CallsPerSecond = request.CallsPerSecond,
-                    RunDurationInMinutes = request.RunDurationInMinutes,
-                    WarmupDurationInMinutes = request.WarmupDurationInMinutes,
-                    TestCollection = request.TestCollection.Count > 0
+            {
+                AppId = request.AppId,
+                AppSecret = request.AppSecret,
+                ApiKey = request.ApiKey,
+                CallsPerSecond = request.CallsPerSecond,
+                RunDurationInMinutes = request.RunDurationInMinutes,
+                WarmupDurationInMinutes = request.WarmupDurationInMinutes,
+                TestCollection = request.TestCollection.Count > 0
                         ? request.TestCollection.Select(TestItem.Map).ToHashSet()
                         : Enumerable.Empty<TestItem>(),
-                };
+            };
         }
     }
 
