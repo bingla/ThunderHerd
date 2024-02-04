@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ThunderHerd.Core.Options
+﻿namespace ThunderHerd.Core.Options
 {
-    public class RunServiceOption
+    public class RunServiceOptions
     {
         public int MaxParallelThreads { get; set; } = 4;
         public int MaxCallsPerSecond { get; set; } = 100;

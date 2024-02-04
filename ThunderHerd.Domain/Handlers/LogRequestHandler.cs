@@ -14,8 +14,7 @@ namespace ThunderHerd.Domain.Handlers
 
             var response = await base.SendAsync(request, cancellationToken);
 
-            request.Headers.Add(Globals.HeaderNames.ElapsedTimeInMilliseconds,
-                stopwatch.Elapsed.TotalMilliseconds.ToString());
+            request.Headers.Add(Globals.HeaderNames.ElapsedTimeInMilliseconds, stopwatch.Elapsed.TotalMilliseconds.ToString());
 
             return response;
         }

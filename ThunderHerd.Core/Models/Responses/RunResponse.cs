@@ -7,13 +7,13 @@ namespace ThunderHerd.Core.Models.Responses
     {
         public DateTime RunStarted { get; set; }
         public DateTime RunCompleted { get; set; }
-        public TimeSpan WarmupDuration { get; set; }
         public TimeSpan RunDuration { get; set; }
+        public TimeSpan WarmupDuration { get; set; }
         public long NumTotalCalls { get; set; }
         public long NumSuccessCalls { get; set; }
-        public long NumErrorCalls {  get; set; }
+        public long NumErrorCalls { get; set; }
 
-        public IEnumerable<TestResultItem> Results { get; set; } = new HashSet<TestResultItem>();
+        public IEnumerable<TestResultSlotItem> TimeSlots { get; set; } = new HashSet<TestResultSlotItem>();
 
         public static RunResponse Map(RunResult result)
         {
@@ -23,23 +23,45 @@ namespace ThunderHerd.Core.Models.Responses
             {
                 RunStarted = result.RunStarted,
                 RunCompleted = result.RunCompleted,
-                WarmupDuration = result.WarmupDuration,
                 RunDuration = result.RunDuration,
-                
+                WarmupDuration = result.WarmupDuration,
+
                 NumTotalCalls = result.NumTotalCalls,
                 NumSuccessCalls = result.NumSuccessCalls,
                 NumErrorCalls = result.NumErrorCalls,
 
-                Results = result.Results.Count() > 0
-                ? result.Results.Select(TestResultItem.Map).ToHashSet()
-                : Enumerable.Empty<TestResultItem>(),
+                TimeSlots = result.TimeSlots
+                    .Select(TestResultSlotItem.Map)
+                    .ToHashSet(),
             };
         }
     }
 
     public partial class RunResponse
     {
-        public class TestResultItem
+        public class TestResultSlotItem
+        {
+            public long Tick { get; set; }
+            public TimeSpan TimeSpan { get; set; }
+            public IEnumerable<TestResultGroupItem> ResultGroups { get; set; } = new HashSet<TestResultGroupItem>();
+
+            public static TestResultSlotItem Map(RunResult.TestResultSlotItem item)
+            {
+                return new TestResultSlotItem
+                {
+                    Tick = item.Tick,
+                    TimeSpan = item.TimeSpan,
+                    ResultGroups = item.ResultGroups
+                        .Select(TestResultGroupItem.Map)
+                        .ToHashSet(),
+                };
+            }
+        }
+    }
+
+    public partial class RunResponse
+    {
+        public class TestResultGroupItem
         {
             public HttpMethods Method { get; set; }
             public string? Host { get; set; }
@@ -62,9 +84,9 @@ namespace ThunderHerd.Core.Models.Responses
             public decimal ErrorMaxResponseTime { get; set; }
             public decimal ErrorAvgResponseTime { get; set; }
 
-            public static TestResultItem Map(RunResult.TestResultItem item)
+            public static TestResultGroupItem Map(RunResult.TestResultGroupItem item)
             {
-                return new TestResultItem
+                return new TestResultGroupItem
                 {
                     Method = item.Method,
                     Host = item.Host,

@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add config options
 builder.Services
-    .Configure<RunServiceOption>(builder.Configuration.GetSection(nameof(RunServiceOption)));
+    .Configure<RunServiceOptions>(builder.Configuration.GetSection(nameof(RunServiceOptions)));
 
 // Add services to the container.
 // Important that these are added before HttpClient

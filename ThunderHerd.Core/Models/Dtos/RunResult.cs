@@ -11,14 +11,37 @@ namespace ThunderHerd.Core.Models.Dtos
         public TimeSpan RunDuration { get; set; }
         public TimeSpan WarmupDuration { get; set; }
         public long NumTotalCalls => NumSuccessCalls + NumErrorCalls;
-        public long NumSuccessCalls => Results.Sum(p => p.SuccessCount);
-        public long NumErrorCalls => Results.Sum(p => p.ErrorCount);
-        public IEnumerable<TestResultItem> Results { get; set; } = new HashSet<TestResultItem>();
+        public long NumSuccessCalls => TimeSlots.Sum(p => p.ResultGroups.Sum(e => e.SuccessCount));
+        public long NumErrorCalls => TimeSlots.Sum(p => p.ResultGroups.Sum(e => e.ErrorCount));
+        public IEnumerable<TestResultSlotItem> TimeSlots { get; set; } = new HashSet<TestResultSlotItem>();
     }
 
     public partial class RunResult
     {
-        public class TestResultItem
+        public class TestResultSlotItem
+        {
+            public long Tick { get; set; }
+            public TimeSpan TimeSpan { get; set; }
+            public IEnumerable<TestResultGroupItem> ResultGroups { get; set; } = new HashSet<TestResultGroupItem>();
+
+            public static TestResultSlotItem Map(IGrouping<long, HttpResponseMessage> group, TimeSpan timeSpan)
+            {
+                return new TestResultSlotItem
+                {
+                    Tick = long.Parse(ItemHelper.GetHeaderValues(group.First(), Globals.HeaderNames.StartTimeInTicks)),
+                    TimeSpan = timeSpan,
+                    ResultGroups = group
+                        .GroupBy(p => p.RequestMessage?.RequestUri, p => p)
+                        .Select(TestResultGroupItem.Map)
+                        .ToHashSet()
+                };
+            }
+        }
+    }
+
+    public partial class RunResult
+    {
+        public class TestResultGroupItem
         {
             public HttpMethods Method { get; set; }
             public string? Host { get; set; }
@@ -41,12 +64,12 @@ namespace ThunderHerd.Core.Models.Dtos
             public decimal ErrorMaxResponseTime { get; set; }
             public decimal ErrorAvgResponseTime { get; set; }
 
-            public static TestResultItem Map(IGrouping<Uri?, HttpResponseMessage> group)
+            public static TestResultGroupItem Map(IGrouping<Uri?, HttpResponseMessage> group)
             {
                 var headerName = Globals.HeaderNames.ElapsedTimeInMilliseconds;
                 var uri = group.Key;
 
-                return new TestResultItem
+                return new TestResultGroupItem
                 {
                     Method = HttpMethods.GET,
                     Host = uri?.Host,

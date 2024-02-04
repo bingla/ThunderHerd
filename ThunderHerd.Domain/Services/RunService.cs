@@ -1,17 +1,20 @@
 ﻿using Microsoft.Extensions.Options;
+using ThunderHerd.Core;
+using ThunderHerd.Core.Helpers;
 using ThunderHerd.Core.Models.Dtos;
 using ThunderHerd.Core.Options;
 using ThunderHerd.Domain.Interfaces;
+using static ThunderHerd.Domain.HttpClients.HerdClient;
 
 namespace ThunderHerd.Domain.Services
 {
     public class RunService : IRunService
     {
-        private readonly IOptions<RunServiceOption> _options;
+        private readonly IOptions<RunServiceOptions> _options;
         private readonly IHerdClient _client;
 
         public RunService(
-            IOptions<RunServiceOption> options,
+            IOptions<RunServiceOptions> options,
             IHerdClient client)
         {
             _options = options;
@@ -73,6 +76,14 @@ namespace ThunderHerd.Domain.Services
                 : callsPerSecond; // Calculate with no warmup
             }
 
+            // Create new request options for httpClient
+            var requestSettings = new HerdRequestSettings
+            {
+                AppId = run.AppId,
+                AppSecret = run.AppSecret,
+                ApiKey = run.ApiKey,
+            };
+
             // Begin the test run
             // Add at least one call step
             var runStart = DateTime.Now;
@@ -88,7 +99,7 @@ namespace ThunderHerd.Domain.Services
                 {
                     // Make calls and add to task list
                     tasks.AddRange(MakeRequest(callStep, numCallsToAddPerSecond,
-                        run.TestCollection, cancellationToken));
+                        run.TestCollection, requestSettings, cancellationToken));
 
                     // If we have reached the max number of calls her second, we stop at that callStep
                     // and don't increase it any further since we don't want to increase the calls each step anymore
@@ -109,9 +120,12 @@ namespace ThunderHerd.Domain.Services
             var responseList = await Task.WhenAll(tasks);
 
             // Group and calculate results
+            var timeSpan = TimeSpan.FromSeconds(1);
             var resultList = responseList
-                .GroupBy(p => p.RequestMessage?.RequestUri, p => p)
-                .Select(RunResult.TestResultItem.Map)
+                .OrderBy(p => long.Parse(ItemHelper.GetHeaderValues(p, Globals.HeaderNames.StartTimeInTicks)))
+                .GroupBy(p => long.Parse(ItemHelper.GetHeaderValues(p, Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks, p => p)
+                .Select(p => RunResult.TestResultSlotItem.Map(p, timeSpan))
+                .OrderBy(p => p.Tick)
                 .ToHashSet();
 
             return new RunResult
@@ -120,13 +134,14 @@ namespace ThunderHerd.Domain.Services
                 RunCompleted = runEnd,
                 RunDuration = runEnd - runStart,
                 WarmupDuration = warmupDuration,
-                Results = resultList,
+                TimeSlots = resultList,
             };
         }
 
         private IEnumerable<Task<HttpResponseMessage>> MakeRequest(int callStep,
             double numCallsToAddPerSecond,
             IEnumerable<Run.TestItem> testList,
+            HerdRequestSettings? settings = default,
             CancellationToken cancellationToken = default)
         {
             // Round up so that number of calls are never below 1
@@ -140,7 +155,7 @@ namespace ThunderHerd.Domain.Services
                     if (string.IsNullOrEmpty(testLink.Url))
                         continue;
 
-                    yield return _client.SendAsync(testLink.Url, testLink.Method, cancellationToken);
+                    yield return _client.SendAsync(testLink.Url, testLink.Method, settings, cancellationToken);
                 }
             }
         }
