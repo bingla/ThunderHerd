@@ -1,4 +1,5 @@
-﻿using ThunderHerd.Core.Enums;
+﻿using System.Net;
+using ThunderHerd.Core.Enums;
 using ThunderHerd.Core.Models.Dtos;
 
 namespace ThunderHerd.Core.Models.Responses
@@ -84,6 +85,8 @@ namespace ThunderHerd.Core.Models.Responses
             public decimal ErrorMaxResponseTime { get; set; }
             public decimal ErrorAvgResponseTime { get; set; }
 
+            public IDictionary<HttpStatusCode, int> StatusCodes { get; set; } = new Dictionary<HttpStatusCode, int>();
+
             public static TestResultGroupItem Map(RunResult.TestResultGroupItem item)
             {
                 return new TestResultGroupItem
@@ -104,6 +107,7 @@ namespace ThunderHerd.Core.Models.Responses
                     ErrorMinResponseTime = item.ErrorMinResponseTime,
                     ErrorMaxResponseTime = item.ErrorMaxResponseTime,
                     ErrorAvgResponseTime = item.ErrorAvgResponseTime,
+                    StatusCodes = item.StatusCodes,
                 };
             }
         }

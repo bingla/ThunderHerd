@@ -1,4 +1,5 @@
-﻿using ThunderHerd.Core.Enums;
+﻿using System.Net;
+using ThunderHerd.Core.Enums;
 using ThunderHerd.Core.Extensions;
 using ThunderHerd.Core.Helpers;
 
@@ -64,6 +65,8 @@ namespace ThunderHerd.Core.Models.Dtos
             public decimal ErrorMaxResponseTime { get; set; }
             public decimal ErrorAvgResponseTime { get; set; }
 
+            public IDictionary<HttpStatusCode, int> StatusCodes { get; set; } = new Dictionary<HttpStatusCode, int>();
+
             public static TestResultGroupItem Map(IGrouping<Uri?, HttpResponseMessage> group)
             {
                 var headerName = Globals.HeaderNames.ElapsedTimeInMilliseconds;
@@ -91,6 +94,10 @@ namespace ThunderHerd.Core.Models.Dtos
                     ErrorMinResponseTime = ItemHelper.Min(group.Where(p => !p.IsSuccessStatusCode), headerName).Round(),
                     ErrorMaxResponseTime = ItemHelper.Max(group.Where(p => !p.IsSuccessStatusCode), headerName).Round(),
                     ErrorAvgResponseTime = ItemHelper.Avg(group.Where(p => !p.IsSuccessStatusCode), headerName).Round(),
+
+                    StatusCodes = group
+                        .GroupBy(p => p.StatusCode, p => p)
+                        .ToDictionary(p => p.Key, p => p.Count()),
                 };
             }
         }
