@@ -25,7 +25,7 @@ builder.Services
         //httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
         httpClient.Timeout = TimeSpan.FromMinutes(10);
     })
-    .SetHandlerLifetime(TimeSpan.FromMinutes(10))
+    .SetHandlerLifetime(TimeSpan.FromMinutes(5))
     .ConfigurePrimaryHttpMessageHandler(() =>
     {
         return new HttpClientHandler
