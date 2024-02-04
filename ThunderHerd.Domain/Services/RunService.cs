@@ -2,9 +2,9 @@
 using ThunderHerd.Core;
 using ThunderHerd.Core.Helpers;
 using ThunderHerd.Core.Models.Dtos;
+using ThunderHerd.Core.Models.Settings;
 using ThunderHerd.Core.Options;
 using ThunderHerd.Domain.Interfaces;
-using static ThunderHerd.Domain.HttpClients.HerdClient;
 
 namespace ThunderHerd.Domain.Services
 {
@@ -77,7 +77,7 @@ namespace ThunderHerd.Domain.Services
             }
 
             // Create new request options for httpClient
-            var requestSettings = new HerdRequestSettings
+            var requestSettings = new HerdClientRequestSettings
             {
                 AppId = run.AppId,
                 AppSecret = run.AppSecret,
@@ -141,7 +141,7 @@ namespace ThunderHerd.Domain.Services
         private IEnumerable<Task<HttpResponseMessage>> MakeRequest(int callStep,
             double numCallsToAddPerSecond,
             IEnumerable<Run.TestItem> testList,
-            HerdRequestSettings? settings = default,
+            HerdClientRequestSettings? settings = default,
             CancellationToken cancellationToken = default)
         {
             // Round up so that number of calls are never below 1

@@ -1,5 +1,6 @@
 ﻿using ThunderHerd.Core;
 using ThunderHerd.Core.Enums;
+using ThunderHerd.Core.Models.Settings;
 using ThunderHerd.Domain.Interfaces;
 
 namespace ThunderHerd.Domain.HttpClients
@@ -13,20 +14,20 @@ namespace ThunderHerd.Domain.HttpClients
             _httpClient = httpClient;
         }
 
-        public Task<HttpResponseMessage> SendAsync(string url, HttpMethods method = HttpMethods.GET, HerdRequestSettings? settings = default, CancellationToken cancellationToken = default)
+        public Task<HttpResponseMessage> SendAsync(string url, HttpMethods method = HttpMethods.GET, HerdClientRequestSettings? settings = default, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNullOrEmpty(url, nameof(url));
             return SendAsync(new Uri(url), method, settings, cancellationToken);
         }
 
-        public Task<HttpResponseMessage> SendAsync(Uri uri, HttpMethods method = HttpMethods.GET, HerdRequestSettings? settings = default, CancellationToken cancellationToken = default)
+        public Task<HttpResponseMessage> SendAsync(Uri uri, HttpMethods method = HttpMethods.GET, HerdClientRequestSettings? settings = default, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(uri, nameof(uri));
             var request = SignRequest(new HttpRequestMessage(ParseHttpMethod(method), uri), settings);
             return _httpClient.SendAsync(request, cancellationToken);
         }
 
-        private static HttpRequestMessage SignRequest(HttpRequestMessage request, HerdRequestSettings? settings = default)
+        private static HttpRequestMessage SignRequest(HttpRequestMessage request, HerdClientRequestSettings? settings = default)
         {
             request.Headers.Add(Globals.HeaderNames.StartTimeInTicks, DateTime.Now.Ticks.ToString());
 
@@ -51,13 +52,6 @@ namespace ThunderHerd.Domain.HttpClients
                 HttpMethods.DELETE => HttpMethod.Delete,
                 _ => HttpMethod.Get,
             };
-        }
-
-        public class HerdRequestSettings
-        {
-            public string? AppId { get; set; }
-            public string? AppSecret { get; set; }
-            public string? ApiKey { get; set; }
         }
     }
 }
