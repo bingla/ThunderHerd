@@ -1,17 +1,26 @@
-﻿using ThunderHerd.Core;
+﻿using Microsoft.Extensions.Options;
+using ThunderHerd.Core;
 using ThunderHerd.Core.Enums;
 using ThunderHerd.Core.Models.Settings;
+using ThunderHerd.Core.Options;
 using ThunderHerd.Domain.Interfaces;
 
 namespace ThunderHerd.Domain.HttpClients
 {
     public class HerdClient : IHerdClient
     {
+        private readonly IOptions<RunServiceOptions> _options;
         private readonly HttpClient _httpClient;
 
-        public HerdClient(HttpClient httpClient)
+        public HerdClient(IOptions<RunServiceOptions> options, HttpClient httpClient)
         {
+            _options = options;
             _httpClient = httpClient;
+
+            // Set the client timeout to double the max runtime duration
+            // TODO: Setting the client timeout so high might degrade performance, look into how long a connection is considered
+            // "open" when tasks are put on queue.
+            _httpClient.Timeout = TimeSpan.FromMinutes(_options.Value.MaxRunDurationInMinutes * 2);
         }
 
         public Task<HttpResponseMessage> SendAsync(string url, HttpMethods method = HttpMethods.GET, HerdClientRequestSettings? settings = default, CancellationToken cancellationToken = default)

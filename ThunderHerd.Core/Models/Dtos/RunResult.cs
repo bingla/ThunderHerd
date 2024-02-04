@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using ThunderHerd.Core.Enums;
 using ThunderHerd.Core.Extensions;
-using ThunderHerd.Core.Helpers;
 
 namespace ThunderHerd.Core.Models.Dtos
 {
@@ -29,7 +28,8 @@ namespace ThunderHerd.Core.Models.Dtos
             {
                 return new TestResultSlotItem
                 {
-                    Tick = long.Parse(ItemHelper.GetHeaderValues(group.First(), Globals.HeaderNames.StartTimeInTicks)),
+                    //Tick = long.Parse(ItemHelper.GetHeaderValues(group.First(), Globals.HeaderNames.StartTimeInTicks)),
+                    Tick = long.Parse(group.First().RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)),
                     TimeSpan = timeSpan,
                     ResultGroups = group
                         .GroupBy(p => p.RequestMessage?.RequestUri, p => p)
@@ -72,6 +72,10 @@ namespace ThunderHerd.Core.Models.Dtos
                 var headerName = Globals.HeaderNames.ElapsedTimeInMilliseconds;
                 var uri = group.Key;
 
+                var responseTimes = group.Select(p => p.RequestMessage);
+                var successResponseTimes = group.Where(p => p.IsSuccessStatusCode).Select(p => p.RequestMessage);
+                var errorResponseTimes = group.Where(p => !p.IsSuccessStatusCode).Select(p => p.RequestMessage);
+
                 return new TestResultGroupItem
                 {
                     Method = HttpMethods.GET,
@@ -83,17 +87,17 @@ namespace ThunderHerd.Core.Models.Dtos
                     SuccessCount = group.Count(e => e.IsSuccessStatusCode),
                     ErrorCount = group.Count(e => !e.IsSuccessStatusCode),
 
-                    MinResponseTime = ItemHelper.Min(group, headerName).Round(),
-                    MaxResponseTime = ItemHelper.Max(group, headerName).Round(),
-                    AvgResponseTime = ItemHelper.Avg(group, headerName).Round(),
+                    MinResponseTime = responseTimes.Min(headerName),
+                    MaxResponseTime = responseTimes.Max(headerName),
+                    AvgResponseTime = responseTimes.Avg(headerName),
 
-                    SuccessMinResponseTime = ItemHelper.Min(group.Where(p => p.IsSuccessStatusCode), headerName).Round(),
-                    SuccessMaxResponseTime = ItemHelper.Max(group.Where(p => p.IsSuccessStatusCode), headerName).Round(),
-                    SuccessAvgResponseTime = ItemHelper.Avg(group.Where(p => p.IsSuccessStatusCode), headerName).Round(),
+                    SuccessMinResponseTime = successResponseTimes.Min(headerName),
+                    SuccessMaxResponseTime = successResponseTimes.Max(headerName),
+                    SuccessAvgResponseTime = successResponseTimes.Avg(headerName),
 
-                    ErrorMinResponseTime = ItemHelper.Min(group.Where(p => !p.IsSuccessStatusCode), headerName).Round(),
-                    ErrorMaxResponseTime = ItemHelper.Max(group.Where(p => !p.IsSuccessStatusCode), headerName).Round(),
-                    ErrorAvgResponseTime = ItemHelper.Avg(group.Where(p => !p.IsSuccessStatusCode), headerName).Round(),
+                    ErrorMinResponseTime = errorResponseTimes.Min(headerName),
+                    ErrorMaxResponseTime = errorResponseTimes.Max(headerName),
+                    ErrorAvgResponseTime = errorResponseTimes.Avg(headerName),
 
                     StatusCodes = group
                         .GroupBy(p => p.StatusCode, p => p)

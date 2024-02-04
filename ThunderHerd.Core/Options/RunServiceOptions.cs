@@ -6,5 +6,6 @@
         public int MaxCallsPerSecond { get; set; } = 100;
         public int MaxRunDurationInMinutes { get; set; } = 60;
         public int MaxWarmupDurationInMinutes { get; set; } = 60;
+        public int TimeSlotSpanInSeconds { get; set; } = 1;
     }
 }

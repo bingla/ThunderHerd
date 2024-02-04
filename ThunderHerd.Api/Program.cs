@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using ThunderHerd.Core.Options;
 using ThunderHerd.Domain.Handlers;
@@ -22,8 +23,8 @@ builder.Services
 builder.Services
     .AddHttpClient<IHerdClient, HerdClient>(httpClient =>
     {
-        //httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-        httpClient.Timeout = TimeSpan.FromMinutes(10);
+        httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+        //httpClient.Timeout = TimeSpan.FromMinutes(120);
     })
     .SetHandlerLifetime(TimeSpan.FromMinutes(5))
     .ConfigurePrimaryHttpMessageHandler(() =>
@@ -31,9 +32,7 @@ builder.Services
         return new HttpClientHandler
         {
             AutomaticDecompression = System.Net.DecompressionMethods.All,
-            MaxConnectionsPerServer = 256,
-            UseDefaultCredentials = true,
-            AllowAutoRedirect = false,
+            MaxConnectionsPerServer = 512,
             UseProxy = false,
         };
     })
@@ -46,6 +45,10 @@ builder.Services
     {
         var enumConverter = new JsonStringEnumConverter();
         options.JsonSerializerOptions.Converters.Add(enumConverter);
+        options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.Strict;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.AllowTrailingCommas = true;
     });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
