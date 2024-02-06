@@ -22,6 +22,18 @@ namespace ThunderHerd.Domain.Services
         }
 
         /// <summary>
+        /// Load a scheduled run from DB and start it
+        /// </summary>
+        /// <param name="runId">Id of run</param>
+        /// <param name="cancellationToken">CancellationToken</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<RunResult> RunAsync(Guid runId, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Start a test run
         /// </summary>
         /// <param name="run">Run object</param>
@@ -134,7 +146,7 @@ namespace ThunderHerd.Domain.Services
                 RunCompleted = runEnd,
                 RunDuration = runEnd - runStart,
                 WarmupDuration = warmupDuration,
-                TimeSlots = resultList,
+                TimeSlotCollection = resultList,
             };
         }
 
@@ -147,7 +159,7 @@ namespace ThunderHerd.Domain.Services
             // Round up so that number of calls are never below 1
             var numCallsToAdd = Convert.ToInt32(Math.Ceiling(callStep * numCallsToAddPerSecond));
 
-            // TODO: Gotta go fast! Makes this a multi thread by using parallel processing, 
+            // TODO: Gotta go fast! Might want to look into makes this a multi thread by using parallel processing, but there might be trade-offs
             for (var i = 0; i < numCallsToAdd; i++)
             {
                 foreach (var testLink in testList)

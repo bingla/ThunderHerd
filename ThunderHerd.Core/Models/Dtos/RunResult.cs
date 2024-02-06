@@ -11,37 +11,30 @@ namespace ThunderHerd.Core.Models.Dtos
         public TimeSpan RunDuration { get; set; }
         public TimeSpan WarmupDuration { get; set; }
         public long NumTotalCalls => NumSuccessCalls + NumErrorCalls;
-        public long NumSuccessCalls => TimeSlots.Sum(p => p.ResultGroups.Sum(e => e.SuccessCount));
-        public long NumErrorCalls => TimeSlots.Sum(p => p.ResultGroups.Sum(e => e.ErrorCount));
-        public IEnumerable<TestResultSlotItem> TimeSlots { get; set; } = new HashSet<TestResultSlotItem>();
-    }
+        public long NumSuccessCalls => TimeSlotCollection.Sum(p => p.ResultGroupCollection.Sum(e => e.SuccessCount));
+        public long NumErrorCalls => TimeSlotCollection.Sum(p => p.ResultGroupCollection.Sum(e => e.ErrorCount));
+        public IEnumerable<TestResultSlotItem> TimeSlotCollection { get; init; } = new HashSet<TestResultSlotItem>();
 
-    public partial class RunResult
-    {
         public class TestResultSlotItem
         {
             public long Tick { get; set; }
             public TimeSpan TimeSpan { get; set; }
-            public IEnumerable<TestResultGroupItem> ResultGroups { get; set; } = new HashSet<TestResultGroupItem>();
+            public IEnumerable<TestResultGroupItem> ResultGroupCollection { get; set; } = new HashSet<TestResultGroupItem>();
 
             public static TestResultSlotItem Map(IGrouping<long, HttpResponseMessage> group, TimeSpan timeSpan)
             {
                 return new TestResultSlotItem
                 {
-                    //Tick = long.Parse(ItemHelper.GetHeaderValues(group.First(), Globals.HeaderNames.StartTimeInTicks)),
                     Tick = long.Parse(group.First().RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)),
                     TimeSpan = timeSpan,
-                    ResultGroups = group
+                    ResultGroupCollection = group
                         .GroupBy(p => p.RequestMessage?.RequestUri, p => p)
                         .Select(TestResultGroupItem.Map)
                         .ToHashSet()
                 };
             }
         }
-    }
 
-    public partial class RunResult
-    {
         public class TestResultGroupItem
         {
             public HttpMethods Method { get; set; }
@@ -65,7 +58,7 @@ namespace ThunderHerd.Core.Models.Dtos
             public decimal ErrorMaxResponseTime { get; set; }
             public decimal ErrorAvgResponseTime { get; set; }
 
-            public IDictionary<HttpStatusCode, int> StatusCodes { get; set; } = new Dictionary<HttpStatusCode, int>();
+            public IDictionary<HttpStatusCode, int> StatusCodes { get; init; } = new Dictionary<HttpStatusCode, int>();
 
             public static TestResultGroupItem Map(IGrouping<Uri?, HttpResponseMessage> group)
             {

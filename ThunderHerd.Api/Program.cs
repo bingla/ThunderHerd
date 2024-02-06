@@ -17,7 +17,8 @@ builder.Services
 builder.Services
     .AddTransient<LogRequestHandler>()
     .AddTransient<IHerdClient, HerdClient>()
-    .AddScoped<IRunService, RunService>();
+    .AddScoped<IRunService, RunService>()
+    .AddScoped<IScheduleService, ScheduleService>();
 
 // Add typed HttpClient
 builder.Services

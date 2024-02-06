@@ -13,6 +13,11 @@ namespace ThunderHerd.Core.Models.Dtos
         public int RunDurationInMinutes { get; set; } = 1;
         public int WarmupDurationInMinutes { get; set; }
 
+        public string? CronSchedule { get; set; }
+        public bool Recurring { get; set; } = false;
+
+        public RunStatus Status { get; set; } = RunStatus.Scheduled;
+
         public IEnumerable<TestItem> TestCollection { get; init; } = new HashSet<TestItem>();
 
         public static Run Map(RunRequest request)
@@ -24,18 +29,17 @@ namespace ThunderHerd.Core.Models.Dtos
                 AppId = request.AppId,
                 AppSecret = request.AppSecret,
                 ApiKey = request.ApiKey,
+                Recurring = request.Recurring,
+                CronSchedule = request.CronSchedule,
                 CallsPerSecond = request.CallsPerSecond,
                 RunDurationInMinutes = request.RunDurationInMinutes,
                 WarmupDurationInMinutes = request.WarmupDurationInMinutes,
-                TestCollection = request.TestCollection.Count > 0
+                TestCollection = request.TestCollection.Count() > 0
                         ? request.TestCollection.Select(TestItem.Map).ToHashSet()
                         : Enumerable.Empty<TestItem>(),
             };
         }
-    }
 
-    public partial class Run
-    {
         public class TestItem
         {
             public HttpMethods Method { get; set; } = HttpMethods.GET;

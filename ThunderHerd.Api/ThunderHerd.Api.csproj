@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <Folder Include="Controllers\Admin\" />
-    <Folder Include="Internals\" />
+    <Folder Include="Internals\Setups\" />
   </ItemGroup>
 
   <ItemGroup>

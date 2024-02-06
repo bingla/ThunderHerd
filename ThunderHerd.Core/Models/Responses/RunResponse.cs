@@ -4,7 +4,7 @@ using ThunderHerd.Core.Models.Dtos;
 
 namespace ThunderHerd.Core.Models.Responses
 {
-    public partial class RunResponse
+    public class RunResponse
     {
         public DateTime RunStarted { get; set; }
         public DateTime RunCompleted { get; set; }
@@ -14,7 +14,7 @@ namespace ThunderHerd.Core.Models.Responses
         public long NumSuccessCalls { get; set; }
         public long NumErrorCalls { get; set; }
 
-        public IEnumerable<TestResultSlotItem> TimeSlots { get; set; } = new HashSet<TestResultSlotItem>();
+        public IEnumerable<TestResultSlotItem> TimeSlotCollection { get; init; } = new HashSet<TestResultSlotItem>();
 
         public static RunResponse Map(RunResult result)
         {
@@ -31,20 +31,17 @@ namespace ThunderHerd.Core.Models.Responses
                 NumSuccessCalls = result.NumSuccessCalls,
                 NumErrorCalls = result.NumErrorCalls,
 
-                TimeSlots = result.TimeSlots
+                TimeSlotCollection = result.TimeSlotCollection
                     .Select(TestResultSlotItem.Map)
                     .ToHashSet(),
             };
         }
-    }
 
-    public partial class RunResponse
-    {
         public class TestResultSlotItem
         {
             public long Tick { get; set; }
             public TimeSpan TimeSpan { get; set; }
-            public IEnumerable<TestResultGroupItem> ResultGroups { get; set; } = new HashSet<TestResultGroupItem>();
+            public IEnumerable<TestResultGroupItem> ResultGroupCollection { get; init; } = new HashSet<TestResultGroupItem>();
 
             public static TestResultSlotItem Map(RunResult.TestResultSlotItem item)
             {
@@ -52,63 +49,60 @@ namespace ThunderHerd.Core.Models.Responses
                 {
                     Tick = item.Tick,
                     TimeSpan = item.TimeSpan,
-                    ResultGroups = item.ResultGroups
+                    ResultGroupCollection = item.ResultGroupCollection
                         .Select(TestResultGroupItem.Map)
                         .ToHashSet(),
                 };
             }
-        }
-    }
 
-    public partial class RunResponse
-    {
-        public class TestResultGroupItem
-        {
-            public HttpMethods Method { get; set; }
-            public string? Host { get; set; }
-            public string? Url { get; set; }
-            public string? Query { get; set; }
-            public string? AbsoluteUrl { get; set; }
-            public long TotalCount => SuccessCount + ErrorCount;
-            public int SuccessCount { get; set; }
-            public int ErrorCount { get; set; }
-
-            public decimal MinResponseTime { get; set; }
-            public decimal MaxResponseTime { get; set; }
-            public decimal AvgResponseTime { get; set; }
-
-            public decimal SuccessMinResponseTime { get; set; }
-            public decimal SuccessMaxResponseTime { get; set; }
-            public decimal SuccessAvgResponseTime { get; set; }
-
-            public decimal ErrorMinResponseTime { get; set; }
-            public decimal ErrorMaxResponseTime { get; set; }
-            public decimal ErrorAvgResponseTime { get; set; }
-
-            public IDictionary<HttpStatusCode, int> StatusCodes { get; set; } = new Dictionary<HttpStatusCode, int>();
-
-            public static TestResultGroupItem Map(RunResult.TestResultGroupItem item)
+            public class TestResultGroupItem
             {
-                return new TestResultGroupItem
+                public HttpMethods Method { get; set; }
+                public string? Host { get; set; }
+                public string? Url { get; set; }
+                public string? Query { get; set; }
+                public string? AbsoluteUrl { get; set; }
+                public long TotalCount => SuccessCount + ErrorCount;
+                public int SuccessCount { get; set; }
+                public int ErrorCount { get; set; }
+
+                public decimal MinResponseTime { get; set; }
+                public decimal MaxResponseTime { get; set; }
+                public decimal AvgResponseTime { get; set; }
+
+                public decimal SuccessMinResponseTime { get; set; }
+                public decimal SuccessMaxResponseTime { get; set; }
+                public decimal SuccessAvgResponseTime { get; set; }
+
+                public decimal ErrorMinResponseTime { get; set; }
+                public decimal ErrorMaxResponseTime { get; set; }
+                public decimal ErrorAvgResponseTime { get; set; }
+
+                public IDictionary<HttpStatusCode, int> StatusCodes { get; init; } = new Dictionary<HttpStatusCode, int>();
+
+                public static TestResultGroupItem Map(RunResult.TestResultGroupItem item)
                 {
-                    Method = item.Method,
-                    Host = item.Host,
-                    Url = item.Url,
-                    Query = item.Query,
-                    AbsoluteUrl = item.AbsoluteUrl,
-                    SuccessCount = item.SuccessCount,
-                    ErrorCount = item.ErrorCount,
-                    MinResponseTime = item.MinResponseTime,
-                    MaxResponseTime = item.MaxResponseTime,
-                    AvgResponseTime = item.AvgResponseTime,
-                    SuccessMinResponseTime = item.SuccessMinResponseTime,
-                    SuccessMaxResponseTime = item.SuccessMaxResponseTime,
-                    SuccessAvgResponseTime = item.SuccessAvgResponseTime,
-                    ErrorMinResponseTime = item.ErrorMinResponseTime,
-                    ErrorMaxResponseTime = item.ErrorMaxResponseTime,
-                    ErrorAvgResponseTime = item.ErrorAvgResponseTime,
-                    StatusCodes = item.StatusCodes,
-                };
+                    return new TestResultGroupItem
+                    {
+                        Method = item.Method,
+                        Host = item.Host,
+                        Url = item.Url,
+                        Query = item.Query,
+                        AbsoluteUrl = item.AbsoluteUrl,
+                        SuccessCount = item.SuccessCount,
+                        ErrorCount = item.ErrorCount,
+                        MinResponseTime = item.MinResponseTime,
+                        MaxResponseTime = item.MaxResponseTime,
+                        AvgResponseTime = item.AvgResponseTime,
+                        SuccessMinResponseTime = item.SuccessMinResponseTime,
+                        SuccessMaxResponseTime = item.SuccessMaxResponseTime,
+                        SuccessAvgResponseTime = item.SuccessAvgResponseTime,
+                        ErrorMinResponseTime = item.ErrorMinResponseTime,
+                        ErrorMaxResponseTime = item.ErrorMaxResponseTime,
+                        ErrorAvgResponseTime = item.ErrorAvgResponseTime,
+                        StatusCodes = item.StatusCodes,
+                    };
+                }
             }
         }
     }
