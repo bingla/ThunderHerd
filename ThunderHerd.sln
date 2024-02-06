@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34321.82
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThunderHerd.Api", "ThunderHerd.Api\ThunderHerd.Api.csproj", "{7A258724-0907-4230-9659-2857353CAB4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThunderHerd.Api", "ThunderHerd.Api\ThunderHerd.Api.csproj", "{7A258724-0907-4230-9659-2857353CAB4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThunderHerd.Core", "ThunderHerd.Core\ThunderHerd.Core.csproj", "{2BA6CC70-7C07-4D99-81C8-34FDE95FDE81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThunderHerd.Core", "ThunderHerd.Core\ThunderHerd.Core.csproj", "{2BA6CC70-7C07-4D99-81C8-34FDE95FDE81}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThunderHerd.Domain", "ThunderHerd.Domain\ThunderHerd.Domain.csproj", "{9D261EB4-79C0-4842-A01D-66AE0998C0A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThunderHerd.Domain", "ThunderHerd.Domain\ThunderHerd.Domain.csproj", "{9D261EB4-79C0-4842-A01D-66AE0998C0A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThunderHerd.DataAccess", "ThunderHerd.DataAccess\ThunderHerd.DataAccess.csproj", "{D9AC9668-8E22-4102-A622-5205EFB61FFD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{9D261EB4-79C0-4842-A01D-66AE0998C0A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D261EB4-79C0-4842-A01D-66AE0998C0A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9D261EB4-79C0-4842-A01D-66AE0998C0A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9AC9668-8E22-4102-A622-5205EFB61FFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9AC9668-8E22-4102-A622-5205EFB61FFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9AC9668-8E22-4102-A622-5205EFB61FFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9AC9668-8E22-4102-A622-5205EFB61FFD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
