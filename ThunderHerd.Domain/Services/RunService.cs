@@ -4,64 +4,53 @@ using ThunderHerd.Core.Extensions;
 using ThunderHerd.Core.Models.Dtos;
 using ThunderHerd.Core.Models.Settings;
 using ThunderHerd.Core.Options;
-using ThunderHerd.DataAccess.Interfaces;
 using ThunderHerd.Domain.Interfaces;
 
 namespace ThunderHerd.Domain.Services
 {
     public class RunService : IRunService
     {
-        private readonly IOptions<RunServiceOptions> _options;
-        private readonly IRunRepository _runRepository;
+        private readonly IOptions<TestServiceOptions> _options;
+        private readonly ITestResultService _testResultService;
+        private readonly ITestService _testService;
         private readonly IHerdClient _client;
 
-        public RunService(
-            IOptions<RunServiceOptions> options,
-            IRunRepository runRepository,
+        public RunService(IOptions<TestServiceOptions> options,
+            ITestResultService testResultService,
+            ITestService testService,
             IHerdClient client)
         {
             _options = options;
-            _runRepository = runRepository;
+            _testService = testService;
+            _testResultService = testResultService;
             _client = client;
+
         }
 
-        /// <summary>
-        /// Load a scheduled run from DB and start it
-        /// </summary>
-        /// <param name="runId">Id of run</param>
-        /// <param name="cancellationToken">CancellationToken</param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public async Task<RunResult> RunAsync(Guid runId, CancellationToken cancellationToken)
+        public async Task RunTestAsync(Guid testId, CancellationToken cancellationToken)
         {
-            var entity = await _runRepository.FindAsync(runId, cancellationToken);
-            return await RunAsync(Run.Map(entity), cancellationToken);
+            var entity = await _testService.GetTestAsync(testId, cancellationToken);
+            await RunTestAsync(entity, cancellationToken);
         }
 
-        /// <summary>
-        /// Start a test run
-        /// </summary>
-        /// <param name="run">Run object</param>
-        /// <param name="cancellationToken">CancellationToken</param>
-        /// <returns>RunResult</returns>
-        public async Task<RunResult> RunAsync(Run run, CancellationToken cancellationToken)
+        public async Task RunTestAsync(Test? test, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(run, nameof(run));
+            ArgumentNullException.ThrowIfNull(test, nameof(test));
 
             // Clamp values to min and max
-            var runDurationInMinutes = run.RunDurationInMinutes > 0
-                ? run.RunDurationInMinutes
+            var runDurationInMinutes = test.RunDurationInMinutes > 0
+                ? test.RunDurationInMinutes
                 : 0;
             runDurationInMinutes = runDurationInMinutes > _options.Value.MaxRunDurationInMinutes
                 ? _options.Value.MaxRunDurationInMinutes
-                : run.RunDurationInMinutes;
+                : test.RunDurationInMinutes;
 
-            var warmupDurationMinutes = run.WarmupDurationInMinutes > 0
-                ? run.WarmupDurationInMinutes
+            var warmupDurationMinutes = test.WarmupDurationInMinutes > 0
+                ? test.WarmupDurationInMinutes
                 : 0;
             warmupDurationMinutes = warmupDurationMinutes > _options.Value.MaxWarmupDurationInMinutes
                 ? _options.Value.MaxWarmupDurationInMinutes
-                : run.WarmupDurationInMinutes;
+                : test.WarmupDurationInMinutes;
 
             // Make sure that the total duration is at least as large as the
             // warmup phase
@@ -75,8 +64,8 @@ namespace ThunderHerd.Domain.Services
             var warmupDurationInSeconds = warmupDuration.TotalSeconds;
 
             // Clamp callsPerSecond to min and max values
-            var callsPerSecond = run.CallsPerSecond > 1
-                ? run.CallsPerSecond
+            var callsPerSecond = test.CallsPerSecond > 1
+                ? test.CallsPerSecond
                 : 1;
             callsPerSecond = callsPerSecond > _options.Value.MaxCallsPerSecond
                 ? _options.Value.MaxCallsPerSecond
@@ -96,15 +85,25 @@ namespace ThunderHerd.Domain.Services
             // Create new request options for httpClient
             var requestSettings = new HerdClientRequestSettings
             {
-                AppId = run.AppId,
-                AppSecret = run.AppSecret,
-                ApiKey = run.ApiKey,
+                //AppId = test.AppId,
+                //AppSecret = test.AppSecret,
+                //ApiKey = test.ApiKey,
             };
+
+            // Calculate start and end times
+            var runStart = DateTime.Now;
+            var runEnd = runStart + runDuration;
+
+            // Create TestResult stub and save to DB
+            var testResult = new TestResult
+            {
+                RunStarted = runStart,
+                WarmupDuration = warmupDuration,
+            };
+            testResult = await _testResultService.CreateTestResultAsync(testResult, cancellationToken);
 
             // Begin the test run
             // Add at least one call step
-            var runStart = DateTime.Now;
-            var runEnd = runStart + runDuration;
             var step = 0;
             var callStep = 1;
             var tasks = new List<Task<HttpResponseMessage>>();
@@ -116,7 +115,7 @@ namespace ThunderHerd.Domain.Services
                 {
                     // Make calls and add to task list
                     tasks.AddRange(MakeRequest(callStep, numCallsToAddPerSecond,
-                        run.TestCollection, requestSettings, cancellationToken));
+                        test.TestItems, requestSettings, cancellationToken));
 
                     // If we have reached the max number of calls her second, we stop at that callStep
                     // and don't increase it any further since we don't want to increase the calls each step anymore
@@ -141,23 +140,22 @@ namespace ThunderHerd.Domain.Services
             var resultList = responseList
                 .OrderBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks)
                 .GroupBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks, p => p)
-                .Select(p => RunResult.TestResultSlotItem.Map(p, timeSpan))
+                .Select(p => TestResult.TestResultSlotItem.Map(p, timeSpan))
                 .OrderBy(p => p.Tick)
                 .ToHashSet();
 
-            return new RunResult
-            {
-                RunStarted = runStart,
-                RunCompleted = runEnd,
-                RunDuration = runEnd - runStart,
-                WarmupDuration = warmupDuration,
-                TimeSlotCollection = resultList,
-            };
+            // Update testresult and save to DB
+            testResult.RunCompleted = runEnd;
+            testResult.RunDuration = runEnd - runStart;
+            testResult.WarmupDuration = warmupDuration;
+
+            _ = await _testResultService.CreateTestResultAsync(testResult, cancellationToken);
         }
 
-        private IEnumerable<Task<HttpResponseMessage>> MakeRequest(int callStep,
+        private IEnumerable<Task<HttpResponseMessage>> MakeRequest(
+            int callStep,
             double numCallsToAddPerSecond,
-            IEnumerable<Run.TestItem> testList,
+            IEnumerable<TestItem> testList,
             HerdClientRequestSettings? settings = default,
             CancellationToken cancellationToken = default)
         {

@@ -9,10 +9,10 @@ namespace ThunderHerd.Domain.HttpClients
 {
     public class HerdClient : IHerdClient
     {
-        private readonly IOptions<RunServiceOptions> _options;
+        private readonly IOptions<TestServiceOptions> _options;
         private readonly HttpClient _httpClient;
 
-        public HerdClient(IOptions<RunServiceOptions> options, HttpClient httpClient)
+        public HerdClient(IOptions<TestServiceOptions> options, HttpClient httpClient)
         {
             _options = options;
             _httpClient = httpClient;

@@ -6,8 +6,10 @@ namespace ThunderHerd.DataAccess
 {
     public class ThunderHerdContext : DbContext
     {
-        public DbSet<Run> Run { get; set; }
+        public DbSet<Test> Test { get; set; }
         public DbSet<TestItem> TestItem { get; set; }
+        public DbSet<TestResult> TestResult { get; set; }
+        public DbSet<TestResultItem> TestResultItem { get; set; }
 
         public ThunderHerdContext(DbContextOptions<ThunderHerdContext> options) : base(options)
         { }
@@ -15,8 +17,11 @@ namespace ThunderHerd.DataAccess
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder
-                .BuildRun()
-                .BuildTestItem();
+                .BuildTest()
+                .BuildTestItem()
+                .BuildSchedule()
+                .BuildTestResult()
+                .BuildTestResultItem();
 
         }
     }

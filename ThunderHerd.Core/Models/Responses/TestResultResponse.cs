@@ -4,8 +4,9 @@ using ThunderHerd.Core.Models.Dtos;
 
 namespace ThunderHerd.Core.Models.Responses
 {
-    public class RunResponse
+    public class TestResultResponse
     {
+        public Guid Id { get; set; }
         public DateTime RunStarted { get; set; }
         public DateTime RunCompleted { get; set; }
         public TimeSpan RunDuration { get; set; }
@@ -16,22 +17,24 @@ namespace ThunderHerd.Core.Models.Responses
 
         public IEnumerable<TestResultSlotItem> TimeSlotCollection { get; init; } = new HashSet<TestResultSlotItem>();
 
-        public static RunResponse Map(RunResult result)
+        public static TestResultResponse? Map(TestResult? entity)
         {
-            ArgumentNullException.ThrowIfNull(result, nameof(result));
+            if (entity == default)
+                return default;
 
-            return new RunResponse
+            return new TestResultResponse
             {
-                RunStarted = result.RunStarted,
-                RunCompleted = result.RunCompleted,
-                RunDuration = result.RunDuration,
-                WarmupDuration = result.WarmupDuration,
+                Id = entity.Id,
+                RunStarted = entity.RunStarted,
+                RunCompleted = entity.RunCompleted,
+                RunDuration = entity.RunDuration,
+                WarmupDuration = entity.WarmupDuration,
 
-                NumTotalCalls = result.NumTotalCalls,
-                NumSuccessCalls = result.NumSuccessCalls,
-                NumErrorCalls = result.NumErrorCalls,
+                NumTotalCalls = entity.NumTotalCalls,
+                NumSuccessCalls = entity.NumSuccessCalls,
+                NumErrorCalls = entity.NumErrorCalls,
 
-                TimeSlotCollection = result.TimeSlotCollection
+                TimeSlotCollection = entity.TimeSlotCollection
                     .Select(TestResultSlotItem.Map)
                     .ToHashSet(),
             };
@@ -43,7 +46,7 @@ namespace ThunderHerd.Core.Models.Responses
             public TimeSpan TimeSpan { get; set; }
             public IEnumerable<TestResultGroupItem> ResultGroupCollection { get; init; } = new HashSet<TestResultGroupItem>();
 
-            public static TestResultSlotItem Map(RunResult.TestResultSlotItem item)
+            public static TestResultSlotItem Map(TestResult.TestResultSlotItem item)
             {
                 return new TestResultSlotItem
                 {
@@ -80,7 +83,7 @@ namespace ThunderHerd.Core.Models.Responses
 
                 public IDictionary<HttpStatusCode, int> StatusCodes { get; init; } = new Dictionary<HttpStatusCode, int>();
 
-                public static TestResultGroupItem Map(RunResult.TestResultGroupItem item)
+                public static TestResultGroupItem Map(TestResult.TestResultGroupItem item)
                 {
                     return new TestResultGroupItem
                     {

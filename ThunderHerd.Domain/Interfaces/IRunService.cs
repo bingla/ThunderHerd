@@ -4,7 +4,7 @@ namespace ThunderHerd.Domain.Interfaces
 {
     public interface IRunService
     {
-        Task<RunResult> RunAsync(Guid runId, CancellationToken cancellationToken);
-        Task<RunResult> RunAsync(Run run, CancellationToken cancellationToken);
+        Task RunTestAsync(Guid testId, CancellationToken cancellationToken);
+        Task RunTestAsync(Test? test, CancellationToken cancellationToken);
     }
 }

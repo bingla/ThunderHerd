@@ -1,0 +1,30 @@
+﻿using ThunderHerd.Core.Enums;
+
+namespace ThunderHerd.Core.Entities
+{
+    public class TestResultItem
+    {
+        public long Id { get; set; }
+        public Guid TestResultId { get; set; }
+        public HttpMethods Method { get; set; }
+        public string? Host { get; set; }
+        public string? Url { get; set; }
+        public string? Query { get; set; }
+        public string? AbsoluteUrl { get; set; }
+        public int SuccessCount { get; set; }
+        public int ErrorCount { get; set; }
+        public long TotalCount => SuccessCount + ErrorCount;
+
+        public decimal MinResponseTime { get; set; }
+        public decimal MaxResponseTime { get; set; }
+        public decimal AvgResponseTime { get; set; }
+
+        public decimal SuccessMinResponseTime { get; set; }
+        public decimal SuccessMaxResponseTime { get; set; }
+        public decimal SuccessAvgResponseTime { get; set; }
+
+        public decimal ErrorMinResponseTime { get; set; }
+        public decimal ErrorMaxResponseTime { get; set; }
+        public decimal ErrorAvgResponseTime { get; set; }
+    }
+}

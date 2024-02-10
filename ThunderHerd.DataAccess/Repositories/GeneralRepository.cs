@@ -16,7 +16,7 @@ namespace ThunderHerd.DataAccess.Repositories
             _setName = _set.EntityType.Name;
         }
 
-        public ValueTask<T?> FindAsync(object id, CancellationToken cancellationToken)
+        public ValueTask<T?> FindAsync(object id, CancellationToken cancellationToken = default)
         {
             return _set.FindAsync(id, cancellationToken);
         }
@@ -28,7 +28,13 @@ namespace ThunderHerd.DataAccess.Repositories
             return tracker.Entity;
         }
 
-        public async Task<T?> UpdateAsync(object oldItemId, T newItem, CancellationToken cancellationToken)
+        public async Task CreateAsync(IEnumerable<T> items, CancellationToken cancellationToken = default)
+        {
+            _set.AddRange(items);
+            _ = await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task<T?> UpdateAsync(object oldItemId, T newItem, CancellationToken cancellationToken = default)
         {
             var oldItem = await FindAsync(oldItemId, cancellationToken);
             if (oldItem == default)
@@ -41,7 +47,7 @@ namespace ThunderHerd.DataAccess.Repositories
             return oldItem;
         }
 
-        public async Task<T?> DeleteAsync(object id, CancellationToken cancellationToken)
+        public async Task<T?> DeleteAsync(object id, CancellationToken cancellationToken = default)
         {
             var item = await FindAsync(id, cancellationToken);
             if (item == default)

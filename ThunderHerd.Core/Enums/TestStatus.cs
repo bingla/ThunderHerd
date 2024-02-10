@@ -1,6 +1,6 @@
 ﻿namespace ThunderHerd.Core.Enums
 {
-    public enum RunStatus
+    public enum TestStatus
     {
         Scheduled = 0,
         Started = 1,
