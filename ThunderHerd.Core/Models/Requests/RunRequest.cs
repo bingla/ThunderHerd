@@ -3,7 +3,7 @@ using ThunderHerd.Core.Enums;
 
 namespace ThunderHerd.Core.Models.Requests
 {
-    public partial class RunRequest
+    public class RunRequest
     {
         [Required]
         public string? AppId { get; set; }
@@ -15,12 +15,12 @@ namespace ThunderHerd.Core.Models.Requests
         public int RunDurationInMinutes { get; set; }
         public int WarmupDurationInMinutes { get; set; }
 
-        [Required]
-        public ICollection<TestItem> TestCollection { get; set; } = new HashSet<TestItem>();
-    }
+        public bool Recurring { get; set; } = false;
+        public string? CronSchedule { get; set; } 
 
-    public partial class RunRequest
-    {
+        [Required]
+        public IEnumerable<TestItem> TestCollection { get; init; } = new HashSet<TestItem>();
+
         public class TestItem
         {
             [Required]

@@ -13,11 +13,12 @@
 
   <ItemGroup>
     <Folder Include="Controllers\Admin\" />
-    <Folder Include="Internals\" />
+    <Folder Include="Internals\Setups\" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ThunderHerd.Core\ThunderHerd.Core.csproj" />
+    <ProjectReference Include="..\ThunderHerd.DataAccess\ThunderHerd.DataAccess.csproj" />
     <ProjectReference Include="..\ThunderHerd.Domain\ThunderHerd.Domain.csproj" />
   </ItemGroup>
 

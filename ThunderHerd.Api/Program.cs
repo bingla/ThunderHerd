@@ -1,12 +1,36 @@
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ThunderHerd.Core.Options;
+using ThunderHerd.DataAccess;
+using ThunderHerd.DataAccess.Interfaces;
 using ThunderHerd.Domain.Handlers;
 using ThunderHerd.Domain.HttpClients;
 using ThunderHerd.Domain.Interfaces;
 using ThunderHerd.Domain.Services;
+using Hangfire;
+using Hangfire.MemoryStorage;
+using ThunderHerd.DataAccess.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add database
+builder.Services.AddDbContext<ThunderHerdContext>(options =>
+{
+    options.UseInMemoryDatabase("RegressionDb");
+    options.EnableDetailedErrors();
+    options.EnableSensitiveDataLogging();
+    options.ConfigureWarnings(b => b.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+}, ServiceLifetime.Scoped);
+
+// Add Hangfire background server (use InMemory while testing, use SQL/Redis for persistence)
+builder.Services
+    .AddHangfire(config =>
+    {
+        config.UseMemoryStorage();
+    })
+    .AddHangfireServer();
 
 // Add config options
 builder.Services
@@ -17,7 +41,9 @@ builder.Services
 builder.Services
     .AddTransient<LogRequestHandler>()
     .AddTransient<IHerdClient, HerdClient>()
-    .AddScoped<IRunService, RunService>();
+    .AddScoped<IRunRepository, RunRepository>()
+    .AddScoped<IRunService, RunService>()
+    .AddScoped<IScheduleService, ScheduleService>();
 
 // Add typed HttpClient
 builder.Services
@@ -50,6 +76,7 @@ builder.Services
         options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.AllowTrailingCommas = true;
     });
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

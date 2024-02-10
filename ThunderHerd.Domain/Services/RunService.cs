@@ -4,6 +4,7 @@ using ThunderHerd.Core.Extensions;
 using ThunderHerd.Core.Models.Dtos;
 using ThunderHerd.Core.Models.Settings;
 using ThunderHerd.Core.Options;
+using ThunderHerd.DataAccess.Interfaces;
 using ThunderHerd.Domain.Interfaces;
 
 namespace ThunderHerd.Domain.Services
@@ -11,14 +12,30 @@ namespace ThunderHerd.Domain.Services
     public class RunService : IRunService
     {
         private readonly IOptions<RunServiceOptions> _options;
+        private readonly IRunRepository _runRepository;
         private readonly IHerdClient _client;
 
         public RunService(
             IOptions<RunServiceOptions> options,
+            IRunRepository runRepository,
             IHerdClient client)
         {
             _options = options;
+            _runRepository = runRepository;
             _client = client;
+        }
+
+        /// <summary>
+        /// Load a scheduled run from DB and start it
+        /// </summary>
+        /// <param name="runId">Id of run</param>
+        /// <param name="cancellationToken">CancellationToken</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<RunResult> RunAsync(Guid runId, CancellationToken cancellationToken)
+        {
+            var entity = await _runRepository.FindAsync(runId, cancellationToken);
+            return await RunAsync(Run.Map(entity), cancellationToken);
         }
 
         /// <summary>
@@ -134,7 +151,7 @@ namespace ThunderHerd.Domain.Services
                 RunCompleted = runEnd,
                 RunDuration = runEnd - runStart,
                 WarmupDuration = warmupDuration,
-                TimeSlots = resultList,
+                TimeSlotCollection = resultList,
             };
         }
 
@@ -147,7 +164,7 @@ namespace ThunderHerd.Domain.Services
             // Round up so that number of calls are never below 1
             var numCallsToAdd = Convert.ToInt32(Math.Ceiling(callStep * numCallsToAddPerSecond));
 
-            // TODO: Gotta go fast! Makes this a multi thread by using parallel processing, 
+            // TODO: Gotta go fast! Might want to look into makes this a multi thread by using parallel processing, but there might be trade-offs
             for (var i = 0; i < numCallsToAdd; i++)
             {
                 foreach (var testLink in testList)
