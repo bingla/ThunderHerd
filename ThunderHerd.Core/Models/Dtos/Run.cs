@@ -1,10 +1,12 @@
-﻿using ThunderHerd.Core.Enums;
+﻿using ThunderHerd.Core.Entities;
+using ThunderHerd.Core.Enums;
 using ThunderHerd.Core.Models.Requests;
 
 namespace ThunderHerd.Core.Models.Dtos
 {
     public partial class Run
     {
+        public Guid Id { get; set; }
         public string? AppId { get; set; }
         public string? AppSecret { get; set; }
         public string? ApiKey { get; set; }
@@ -13,8 +15,8 @@ namespace ThunderHerd.Core.Models.Dtos
         public int RunDurationInMinutes { get; set; } = 1;
         public int WarmupDurationInMinutes { get; set; }
 
-        public string? CronSchedule { get; set; }
         public bool Recurring { get; set; } = false;
+        public string? CronSchedule { get; set; }
 
         public RunStatus Status { get; set; } = RunStatus.Scheduled;
 
@@ -37,6 +39,22 @@ namespace ThunderHerd.Core.Models.Dtos
                 TestCollection = request.TestCollection.Count() > 0
                         ? request.TestCollection.Select(TestItem.Map).ToHashSet()
                         : Enumerable.Empty<TestItem>(),
+            };
+        }
+
+        public static Run Map(Entities.Run entity)
+        {
+            return new Run
+            {
+                Id = entity.Id,
+                AppId = entity.AppId,
+                AppSecret = entity.AppSecret,
+                ApiKey = entity.ApiKey,
+                CallsPerSecond = entity.CallsPerSecond,
+                RunDurationInMinutes = entity.RunDurationInMinutes,
+                WarmupDurationInMinutes = entity.WarmupDurationInMinutes,
+                Recurring = entity.Recurring,
+                CronSchedule = entity.CronSchedule,
             };
         }
 

@@ -1,8 +1,12 @@
-﻿using System;
+﻿using Hangfire;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ThunderHerd.Core.Entities;
+using ThunderHerd.Core.Models.Dtos;
+using ThunderHerd.DataAccess.Interfaces;
 using ThunderHerd.Domain.Interfaces;
 
 namespace ThunderHerd.Domain.Services
@@ -12,20 +16,31 @@ namespace ThunderHerd.Domain.Services
     /// </summary>
     public class ScheduleService : IScheduleService
     {
-        public ScheduleService()
-        { }
+        private readonly IRunService _runService;
+        private readonly IRunRepository _runRepository;
 
-        /// <summary>
-        /// Schedule a run
-        /// </summary>
-        /// <remarks>
-        /// Schedules a run by persisting it to DB and registering it in hangfire(?)
-        /// </remarks>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public Task ScheduleRun()
+        public ScheduleService(IRunService runService,
+            IRunRepository runRepository)
         {
-            throw new NotImplementedException();
+            _runService = runService;
+            _runRepository = runRepository;
+        }
+
+        public async Task ScheduleRunAsync(Core.Models.Dtos.Run run, CancellationToken cancellationToken)
+        {
+            // TODO: Map run item to entity and save
+            var entity = await _runRepository.CreateAsync(Core.Entities.Run.Map(run), cancellationToken);
+
+            // TODO: Schedule with HangFire
+            if (!entity.Recurring)
+            {
+                // Schedule to run immediately
+                BackgroundJob.Enqueue(() => _runService.RunAsync(entity.Id, CancellationToken.None));
+            }
+            else
+            {
+                // TODO: Schedule to run on cronjon
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ using ThunderHerd.Core.Extensions;
 using ThunderHerd.Core.Models.Dtos;
 using ThunderHerd.Core.Models.Settings;
 using ThunderHerd.Core.Options;
+using ThunderHerd.DataAccess.Interfaces;
 using ThunderHerd.Domain.Interfaces;
 
 namespace ThunderHerd.Domain.Services
@@ -11,13 +12,16 @@ namespace ThunderHerd.Domain.Services
     public class RunService : IRunService
     {
         private readonly IOptions<RunServiceOptions> _options;
+        private readonly IRunRepository _runRepository;
         private readonly IHerdClient _client;
 
         public RunService(
             IOptions<RunServiceOptions> options,
+            IRunRepository runRepository,
             IHerdClient client)
         {
             _options = options;
+            _runRepository = runRepository;
             _client = client;
         }
 
@@ -30,7 +34,8 @@ namespace ThunderHerd.Domain.Services
         /// <exception cref="NotImplementedException"></exception>
         public async Task<RunResult> RunAsync(Guid runId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var entity = await _runRepository.FindAsync(runId, cancellationToken);
+            return await RunAsync(Run.Map(entity), cancellationToken);
         }
 
         /// <summary>

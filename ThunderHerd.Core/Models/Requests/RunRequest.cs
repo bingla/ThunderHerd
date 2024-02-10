@@ -15,8 +15,8 @@ namespace ThunderHerd.Core.Models.Requests
         public int RunDurationInMinutes { get; set; }
         public int WarmupDurationInMinutes { get; set; }
 
-        public string? CronSchedule { get; set; }
         public bool Recurring { get; set; } = false;
+        public string? CronSchedule { get; set; } 
 
         [Required]
         public IEnumerable<TestItem> TestCollection { get; init; } = new HashSet<TestItem>();
