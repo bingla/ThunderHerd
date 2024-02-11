@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using System;
 using ThunderHerd.Core;
 using ThunderHerd.Core.Extensions;
 using ThunderHerd.Core.Models.Dtos;
@@ -24,7 +25,6 @@ namespace ThunderHerd.Domain.Services
             _testService = testService;
             _testResultService = testResultService;
             _client = client;
-
         }
 
         public async Task RunTestAsync(Guid testId, CancellationToken cancellationToken)
@@ -97,6 +97,7 @@ namespace ThunderHerd.Domain.Services
             // Create TestResult stub and save to DB
             var testResult = new TestResult
             {
+                TestId = test.Id,
                 RunStarted = runStart,
                 WarmupDuration = warmupDuration,
             };
@@ -129,27 +130,36 @@ namespace ThunderHerd.Domain.Services
             }
             while (runEnd > DateTime.Now && !cancellationToken.IsCancellationRequested);
 
-            // Set the runtime if the call was cancelled instead of allowed to run to it's conclusion
-            runEnd = DateTime.Now;
-
             // Wait until all requests has been returned
             var responseList = await Task.WhenAll(tasks);
 
-            // Group and calculate results
-            var timeSpan = TimeSpan.FromSeconds(_options.Value.TimeSlotSpanInSeconds);
-            var resultList = responseList
-                .OrderBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks)
-                .GroupBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks, p => p)
-                .Select(p => TestResult.TestResultSlotItem.Map(p, timeSpan))
-                .OrderBy(p => p.Tick)
-                .ToHashSet();
+            // Set the runtime if the call was cancelled instead of allowed to run to it's conclusion
+            runEnd = DateTime.Now;
 
             // Update testresult and save to DB
             testResult.RunCompleted = runEnd;
             testResult.RunDuration = runEnd - runStart;
             testResult.WarmupDuration = warmupDuration;
 
-            _ = await _testResultService.CreateTestResultAsync(testResult, cancellationToken);
+            testResult = await _testResultService.UpdateTestResultAsync(testResult, cancellationToken);
+
+            // Group and calculate results
+            //var timeSpan = TimeSpan.FromSeconds(_options.Value.TimeSlotSpanInSeconds);
+            //var resultList = responseList
+            //    .OrderBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks)
+            //    .GroupBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks, p => p)
+            //    .Select(p => TestResult.TestResultSlotItem.Map(p, timeSpan))
+            //    .OrderBy(p => p.Tick)
+            //    .ToHashSet();
+
+            // Map Results
+            var timeSpan = TimeSpan.FromSeconds(_options.Value.TimeSlotSpanInSeconds);
+            var testResultItems = responseList
+                    .OrderBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)))
+                    .Select(p => TestResultItem.Map(testResult.Id, p));
+
+            // Save results to DB
+            await _testResultService.CreateTestResultItems(testResultItems, cancellationToken);
         }
 
         private IEnumerable<Task<HttpResponseMessage>> MakeRequest(

@@ -23,7 +23,7 @@ namespace ThunderHerd.DataAccess.Extensions
             builder
                 .Entity<Test>()
                 .Navigation(p => p.TestItems)
-                .EnableLazyLoading();
+                .AutoInclude();
 
             return builder;
         }

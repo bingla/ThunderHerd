@@ -15,7 +15,6 @@ namespace ThunderHerd.Core.Models.Responses
         public long NumSuccessCalls { get; set; }
         public long NumErrorCalls { get; set; }
 
-        public IEnumerable<TestResultSlotItem> TimeSlotCollection { get; init; } = new HashSet<TestResultSlotItem>();
 
         public static TestResultResponse? Map(TestResult? entity)
         {
@@ -33,10 +32,6 @@ namespace ThunderHerd.Core.Models.Responses
                 NumTotalCalls = entity.NumTotalCalls,
                 NumSuccessCalls = entity.NumSuccessCalls,
                 NumErrorCalls = entity.NumErrorCalls,
-
-                TimeSlotCollection = entity.TimeSlotCollection
-                    .Select(TestResultSlotItem.Map)
-                    .ToHashSet(),
             };
         }
 

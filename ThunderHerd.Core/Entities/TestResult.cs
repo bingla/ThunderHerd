@@ -17,6 +17,7 @@
             return new TestResult
             {
                 Id = entity.Id,
+                TestId = entity.TestId,
                 RunStarted = entity.RunStarted,
                 RunCompleted = entity.RunCompleted,
                 RunDuration = entity.RunDuration,

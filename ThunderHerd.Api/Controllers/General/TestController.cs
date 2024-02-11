@@ -30,9 +30,15 @@ namespace ThunderHerd.Api.Controllers.General
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<IActionResult> CreateTest(TestCreateRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> CreateTest(TestCreateRequest request, [FromQuery] bool start, CancellationToken cancellationToken)
         {
             var result = await _testService.CreateTestAsync(Test.Map(request), cancellationToken);
+
+            if (start)
+            {
+                await _scheduleService.ScheduleTestImmediatelyAsync(result.Id, cancellationToken);
+            }
+
             return Ok(TestCreateResponse.Map(result));
         }
 
@@ -83,12 +89,18 @@ namespace ThunderHerd.Api.Controllers.General
         /// </summary>
         /// <param name="testResultId"></param>
         /// <returns></returns>
-        [HttpGet("{testId}/result/{testResultId}/results")]
-        public async IAsyncEnumerable<TestResultItemResponse?> GetTestResultItemsByTestResultId(Guid testResultId)
+        [HttpGet("result/{testResultId}/results")]
+        public async IAsyncEnumerable<TestResultGroupResponse> GetTestResultItemsByTestResultId(Guid testResultId,
+            [FromQuery] int tSpan = 1)
         {
-            await foreach (var entity in _testResultService.FindTestResultItemsByTestResultId(testResultId))
+            var timespan = TimeSpan.FromSeconds(tSpan < 1 ? 1 : tSpan);
+            var items = _testResultService
+                        .GroupTestResultItemsByTime(testResultId, timespan)
+                        .SelectAwait(async p => await TestResultGroupResponse.Map(p));
+
+            await foreach (var item in items)
             {
-                yield return TestResultItemResponse.Map(entity);
+                
             }
         }
     }

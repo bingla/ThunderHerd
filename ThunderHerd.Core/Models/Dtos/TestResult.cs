@@ -7,6 +7,7 @@ namespace ThunderHerd.Core.Models.Dtos
     public partial class TestResult
     {
         public Guid Id { get; set; }
+        public Guid TestId { get; set; }
         public DateTime RunStarted { get; set; }
         public DateTime RunCompleted { get; set; }
         public TimeSpan RunDuration { get; set; }
@@ -25,6 +26,7 @@ namespace ThunderHerd.Core.Models.Dtos
             return new TestResult
             {
                 Id = entity.Id,
+                TestId = entity.TestId,
                 RunStarted = entity.RunStarted,
                 RunCompleted = entity.RunCompleted,
                 RunDuration = entity.RunDuration,

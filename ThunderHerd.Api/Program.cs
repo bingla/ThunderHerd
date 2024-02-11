@@ -15,10 +15,10 @@ using ThunderHerd.Domain.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add database
+// Add database (use InMemory while testing, use SQL/Redis for persistence)
 builder.Services.AddDbContext<ThunderHerdContext>(options =>
 {
-    options.UseInMemoryDatabase("RegressionDb");
+    options.UseInMemoryDatabase("ThunderHerdDb");
     options.EnableDetailedErrors();
     options.EnableSensitiveDataLogging();
     options.ConfigureWarnings(b => b.Ignore(InMemoryEventId.TransactionIgnoredWarning));
@@ -81,7 +81,6 @@ builder.Services
         options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.AllowTrailingCommas = true;
     });
-
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

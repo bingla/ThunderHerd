@@ -5,9 +5,6 @@ namespace ThunderHerd.Domain.Handlers
 {
     public class LogRequestHandler : DelegatingHandler
     {
-        public LogRequestHandler()
-        { }
-
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var stopwatch = Stopwatch.StartNew();
