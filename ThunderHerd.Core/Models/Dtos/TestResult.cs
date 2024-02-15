@@ -4,16 +4,35 @@ using ThunderHerd.Core.Extensions;
 
 namespace ThunderHerd.Core.Models.Dtos
 {
-    public partial class RunResult
+    public partial class TestResult
     {
+        public Guid Id { get; set; }
+        public Guid TestId { get; set; }
         public DateTime RunStarted { get; set; }
         public DateTime RunCompleted { get; set; }
         public TimeSpan RunDuration { get; set; }
         public TimeSpan WarmupDuration { get; set; }
+
         public long NumTotalCalls => NumSuccessCalls + NumErrorCalls;
         public long NumSuccessCalls => TimeSlotCollection.Sum(p => p.ResultGroupCollection.Sum(e => e.SuccessCount));
         public long NumErrorCalls => TimeSlotCollection.Sum(p => p.ResultGroupCollection.Sum(e => e.ErrorCount));
         public IEnumerable<TestResultSlotItem> TimeSlotCollection { get; init; } = new HashSet<TestResultSlotItem>();
+
+        public static TestResult? Map(Entities.TestResult? entity)
+        {
+            if (entity == default)
+                return default;
+
+            return new TestResult
+            {
+                Id = entity.Id,
+                TestId = entity.TestId,
+                RunStarted = entity.RunStarted,
+                RunCompleted = entity.RunCompleted,
+                RunDuration = entity.RunDuration,
+                WarmupDuration = entity.WarmupDuration,
+            };
+        }
 
         public class TestResultSlotItem
         {

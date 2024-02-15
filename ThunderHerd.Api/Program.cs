@@ -1,24 +1,24 @@
-using Microsoft.EntityFrameworkCore.Diagnostics;
+using Hangfire;
+using Hangfire.MemoryStorage;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ThunderHerd.Core.Options;
 using ThunderHerd.DataAccess;
 using ThunderHerd.DataAccess.Interfaces;
+using ThunderHerd.DataAccess.Repositories;
 using ThunderHerd.Domain.Handlers;
 using ThunderHerd.Domain.HttpClients;
 using ThunderHerd.Domain.Interfaces;
 using ThunderHerd.Domain.Services;
-using Hangfire;
-using Hangfire.MemoryStorage;
-using ThunderHerd.DataAccess.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add database
+// Add database (use InMemory while testing, use SQL/Redis for persistence)
 builder.Services.AddDbContext<ThunderHerdContext>(options =>
 {
-    options.UseInMemoryDatabase("RegressionDb");
+    options.UseInMemoryDatabase("ThunderHerdDb");
     options.EnableDetailedErrors();
     options.EnableSensitiveDataLogging();
     options.ConfigureWarnings(b => b.Ignore(InMemoryEventId.TransactionIgnoredWarning));
@@ -34,16 +34,21 @@ builder.Services
 
 // Add config options
 builder.Services
-    .Configure<RunServiceOptions>(builder.Configuration.GetSection(nameof(RunServiceOptions)));
+    .Configure<TestServiceOptions>(builder.Configuration.GetSection(nameof(TestServiceOptions)));
 
 // Add services to the container.
 // Important that these are added before HttpClient
 builder.Services
     .AddTransient<LogRequestHandler>()
     .AddTransient<IHerdClient, HerdClient>()
-    .AddScoped<IRunRepository, RunRepository>()
-    .AddScoped<IRunService, RunService>()
-    .AddScoped<IScheduleService, ScheduleService>();
+    .AddScoped<ITestRepository, TestRepository>()
+    .AddScoped<IScheduleRepository, ScheduleRepository>()
+    .AddScoped<ITestResultRepository, TestResultRepository>()
+    .AddScoped<ITestResultItemRepository, TestResultItemRepository>()
+    .AddScoped<ITestService, TestService>()
+    .AddScoped<ITestResultService, TestResultService>()
+    .AddScoped<IScheduleService, ScheduleService>()
+    .AddScoped<IRunService, RunService>();
 
 // Add typed HttpClient
 builder.Services
@@ -76,7 +81,6 @@ builder.Services
         options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.AllowTrailingCommas = true;
     });
-
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

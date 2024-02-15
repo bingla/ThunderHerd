@@ -1,10 +1,4 @@
 ﻿using Hangfire;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ThunderHerd.Core.Entities;
 using ThunderHerd.Core.Models.Dtos;
 using ThunderHerd.DataAccess.Interfaces;
 using ThunderHerd.Domain.Interfaces;
@@ -16,31 +10,64 @@ namespace ThunderHerd.Domain.Services
     /// </summary>
     public class ScheduleService : IScheduleService
     {
+        private readonly ITestService _testService;
         private readonly IRunService _runService;
-        private readonly IRunRepository _runRepository;
+        private readonly IScheduleRepository _scheduleRepository;
+        private readonly ITestRepository _testRepository;
 
-        public ScheduleService(IRunService runService,
-            IRunRepository runRepository)
+        public ScheduleService(ITestService testService,
+            IRunService runService,
+            IScheduleRepository scheduleRepository,
+            ITestRepository testRepository)
         {
+            _testService = testService;
             _runService = runService;
-            _runRepository = runRepository;
+            _scheduleRepository = scheduleRepository;
+            _testRepository = testRepository;
         }
 
-        public async Task ScheduleRunAsync(Core.Models.Dtos.Run run, CancellationToken cancellationToken)
+        public async Task<Schedule?> CreateScheduleAsync(Schedule? schedule, CancellationToken cancellationToken = default)
         {
-            // TODO: Map run item to entity and save
-            var entity = await _runRepository.CreateAsync(Core.Entities.Run.Map(run), cancellationToken);
+            ArgumentNullException.ThrowIfNull(schedule, nameof(schedule));
 
-            // TODO: Schedule with HangFire
-            if (!entity.Recurring)
+            var entity = await _scheduleRepository.CreateAsync(Core.Entities.Schedule.Map(schedule), cancellationToken);
+            return Schedule.Map(entity);
+        }
+
+        public async Task<Schedule?> FindScheduleAsync(Guid scheduleId, CancellationToken cancellationToken = default)
+        {
+            var entity = await _scheduleRepository.FindAsync(scheduleId, cancellationToken);
+            return Schedule.Map(entity);
+        }
+
+        public async Task ScheduleTestAsync(Guid scheduleId, CancellationToken cancellationToken = default)
+        {
+            var schedule = await FindScheduleAsync(scheduleId, cancellationToken);
+            await ScheduleTestAsync(schedule, cancellationToken);
+        }
+
+        public Task ScheduleTestAsync(Schedule? schedule, CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(schedule, nameof(schedule));
+
+            // Schedule with HangFire
+            if (!schedule.Recurring)
             {
                 // Schedule to run immediately
-                BackgroundJob.Enqueue(() => _runService.RunAsync(entity.Id, CancellationToken.None));
+                BackgroundJob.Enqueue(() => _runService.RunTestAsync(schedule.TestId, cancellationToken));
             }
             else
             {
-                // TODO: Schedule to run on cronjon
+                // TODO: Schedule to run on cron job
             }
+
+            return Task.CompletedTask;
+        }
+
+        public async Task ScheduleTestImmediatelyAsync(Guid testId, CancellationToken cancellationToken = default)
+        {
+            var schedule = new Schedule { TestId = testId, Recurring = false };
+            await ScheduleTestAsync(schedule, cancellationToken);
         }
     }
 }

@@ -2,6 +2,6 @@
 
 namespace ThunderHerd.DataAccess.Interfaces
 {
-    public interface IRunRepository : IGeneralRepository<Run>
+    public interface ITestRepository : IGeneralRepository<Test>
     { }
 }

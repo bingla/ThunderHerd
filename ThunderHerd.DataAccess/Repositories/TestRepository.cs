@@ -3,9 +3,9 @@ using ThunderHerd.DataAccess.Interfaces;
 
 namespace ThunderHerd.DataAccess.Repositories
 {
-    public class RunRepository : GeneralRepository<Run>, IRunRepository
+    public class TestRepository : GeneralRepository<Test>, ITestRepository
     {
-        public RunRepository(ThunderHerdContext context) : base(context)
+        public TestRepository(ThunderHerdContext context) : base(context)
         { }
     }
 }

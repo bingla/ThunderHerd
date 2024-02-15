@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ThunderHerd.Core.Models.Dtos;
+﻿using ThunderHerd.Core.Models.Dtos;
 
 namespace ThunderHerd.Domain.Interfaces
 {
     public interface IScheduleService
     {
-        Task ScheduleRunAsync(Run run, CancellationToken cancellationToken);
+        Task<Schedule?> CreateScheduleAsync(Schedule schedule, CancellationToken cancellationToken = default);
+        Task<Schedule?> FindScheduleAsync(Guid scheduleId, CancellationToken cancellationToken = default);
+        Task ScheduleTestAsync(Guid scheduleId, CancellationToken cancellationToken = default);
+        Task ScheduleTestAsync(Schedule? schedule, CancellationToken cancellationToken = default);
+        Task ScheduleTestImmediatelyAsync(Guid testId, CancellationToken cancellationToken = default);
     }
 }

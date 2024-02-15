@@ -1,6 +1,6 @@
 ﻿namespace ThunderHerd.Core.Options
 {
-    public class RunServiceOptions
+    public class TestServiceOptions
     {
         public int MaxParallelThreads { get; set; } = 4;
         public int MaxCallsPerSecond { get; set; } = 100;
