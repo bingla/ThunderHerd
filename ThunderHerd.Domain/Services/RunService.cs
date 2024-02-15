@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using System;
 using ThunderHerd.Core;
 using ThunderHerd.Core.Extensions;
 using ThunderHerd.Core.Models.Dtos;

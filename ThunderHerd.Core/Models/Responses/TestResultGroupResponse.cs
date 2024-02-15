@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using ThunderHerd.Core.Enums;
-using ThunderHerd.Core.Models.Dtos;
+﻿using ThunderHerd.Core.Models.Dtos;
 
 namespace ThunderHerd.Core.Models.Responses
 {
@@ -10,13 +8,13 @@ namespace ThunderHerd.Core.Models.Responses
 
         public IEnumerable<TestResultGroupItemResponse> Items { get; init; } = new List<TestResultGroupItemResponse>();
 
-        public static Task<TestResultGroupResponse> Map(TestResultGroup entity)
+        public static TestResultGroupResponse Map(TestResultGroup entity)
         {
-            return Task.FromResult(new TestResultGroupResponse
+            return new TestResultGroupResponse
             {
                 Ticks = entity.Ticks,
                 Items = entity.Items.Select(TestResultGroupItemResponse.Map),
-            });
+            };
         }
     }
 }

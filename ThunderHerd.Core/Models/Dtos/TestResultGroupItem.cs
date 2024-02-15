@@ -1,5 +1,5 @@
-﻿using System.Net.Sockets;
-using ThunderHerd.Core.Enums;
+﻿using ThunderHerd.Core.Enums;
+using ThunderHerd.Core.Extensions;
 
 namespace ThunderHerd.Core.Models.Dtos
 {
@@ -27,13 +27,14 @@ namespace ThunderHerd.Core.Models.Dtos
         public decimal ErrorMaxResponseTime { get; set; }
         public decimal ErrorAvgResponseTime { get; set; }
 
-        public static async Task<TestResultGroupItem> Map(IAsyncGrouping<string, TestResultItem> group)
+
+        public static TestResultGroupItem Map(IGrouping<string, TestResultItem> group)
         {
-            var entity = await group.FirstOrDefaultAsync();
+            var entity = group.FirstOrDefault();
             var successes = group.Where(p => !p.IsFaulty);
             var errors = group.Where(p => p.IsFaulty);
-            var successCount = successes.CountAsync();
-            var errorCount = errors.CountAsync();
+            var successCount = successes.Count();
+            var errorCount = errors.Count();
 
             return new TestResultGroupItem
             {
@@ -43,20 +44,20 @@ namespace ThunderHerd.Core.Models.Dtos
                 Query = entity.Query,
                 AbsoluteUrl = entity.AbsoluteUrl,
 
-                SuccessCount = await successCount,
-                ErrorCount = await errorCount,
+                SuccessCount = successCount,
+                ErrorCount = errorCount,
 
-                MinResponseTime = await group.MinAsync(p => p.ResponseTime),
-                MaxResponseTime = await group.MaxAsync(p => p.ResponseTime),
-                AvgResponseTime = await group.AverageAsync(p => p.ResponseTime),
+                MinResponseTime = group.Min(p => p.ResponseTime).Round(),
+                MaxResponseTime = group.Max(p => p.ResponseTime).Round(),
+                AvgResponseTime = group.Average(p => p.ResponseTime).Round(),
 
-                SuccessMinResponseTime = await successes.MinAsync(p => p.ResponseTime),
-                SuccessMaxResponseTime = await successes.MaxAsync(p => p.ResponseTime),
-                SuccessAvgResponseTime = await successes.AverageAsync(p => p.ResponseTime),
+                SuccessMinResponseTime = successCount > 0 ? successes.Min(p => p.ResponseTime).Round() : 0,
+                SuccessMaxResponseTime = successCount > 0 ? successes.Max(p => p.ResponseTime).Round() : 0,
+                SuccessAvgResponseTime = successCount > 0 ? successes.Average(p => p.ResponseTime).Round() : 0,
 
-                ErrorMinResponseTime = await errors.MinAsync(p => p.ResponseTime),
-                ErrorMaxResponseTime = await errors.MaxAsync(p => p.ResponseTime),
-                ErrorAvgResponseTime = await errors.AverageAsync(p => p.ResponseTime),
+                ErrorMinResponseTime = errorCount > 0 ? errors.Min(p => p.ResponseTime).Round() : 0,
+                ErrorMaxResponseTime = errorCount > 0 ? errors.Max(p => p.ResponseTime).Round() : 0,
+                ErrorAvgResponseTime = errorCount > 0 ? errors.Average(p => p.ResponseTime).Round() : 0,
             };
         }
     }

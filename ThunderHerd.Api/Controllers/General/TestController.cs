@@ -90,18 +90,12 @@ namespace ThunderHerd.Api.Controllers.General
         /// <param name="testResultId"></param>
         /// <returns></returns>
         [HttpGet("result/{testResultId}/results")]
-        public async IAsyncEnumerable<TestResultGroupResponse> GetTestResultItemsByTestResultId(Guid testResultId,
-            [FromQuery] int tSpan = 1)
+        public async Task<IActionResult> GetTestResultItemsByTestResultId(Guid testResultId,
+            [FromQuery] int timeSpan = 1)
         {
-            var timespan = TimeSpan.FromSeconds(tSpan < 1 ? 1 : tSpan);
-            var items = _testResultService
-                        .GroupTestResultItemsByTime(testResultId, timespan)
-                        .SelectAwait(async p => await TestResultGroupResponse.Map(p));
-
-            await foreach (var item in items)
-            {
-                
-            }
+            var timespan = TimeSpan.FromSeconds(timeSpan < 1 ? 1 : timeSpan);
+            var result = await _testResultService.GroupTestResultItemsByTime(testResultId, timespan);
+            return Ok(result.Select(TestResultGroupResponse.Map));
         }
     }
 }

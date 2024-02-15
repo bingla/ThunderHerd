@@ -9,11 +9,9 @@ namespace ThunderHerd.DataAccess.Repositories
         public TestResultItemRepository(ThunderHerdContext context) : base(context)
         { }
 
-        public IAsyncEnumerable<TestResultItem> GetTestResultItems(Guid testResultId)
+        public async Task<IEnumerable<TestResultItem>> GetTestResultItemsAsync(Guid testResultId)
         {
-            return _set
-                .Where(p => p.TestResultId == testResultId)
-                .AsAsyncEnumerable();
+            return await _set.Where(p => p.TestResultId == testResultId).ToListAsync();
         }
     }
 }

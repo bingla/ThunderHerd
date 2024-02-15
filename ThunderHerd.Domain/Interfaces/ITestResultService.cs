@@ -7,10 +7,9 @@ namespace ThunderHerd.Domain.Interfaces
         Task<TestResult?> CreateTestResultAsync(TestResult testResult, CancellationToken cancellationToken = default);
         Task<TestResult?> UpdateTestResultAsync(TestResult testResult, CancellationToken cancellationToken = default);
         Task<TestResult?> FindTestResultAsync(Guid testResultId, CancellationToken cancellationToken = default);
-        
+
         IAsyncEnumerable<TestResult?> FindTestResultsByTestId(Guid testId);
-        IAsyncEnumerable<TestResultItem?> FindTestResultItemsByTestResultId(Guid testResultId);
-        IAsyncEnumerable<TestResultGroup> GroupTestResultItemsByTime(Guid testResultId, TimeSpan timespan);
+        Task<IEnumerable<TestResultGroup>> GroupTestResultItemsByTime(Guid testResultId, TimeSpan timespan);
 
         Task CreateTestResultItem(TestResultItem testResultItem, CancellationToken cancellationToken);
         Task CreateTestResultItems(IEnumerable<TestResultItem> testResultItems, CancellationToken cancellationToken);

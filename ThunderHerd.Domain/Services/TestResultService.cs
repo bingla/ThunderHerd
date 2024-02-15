@@ -1,7 +1,4 @@
-﻿using System;
-using System.Reflection.Metadata.Ecma335;
-using ThunderHerd.Core;
-using ThunderHerd.Core.Models.Dtos;
+﻿using ThunderHerd.Core.Models.Dtos;
 using ThunderHerd.DataAccess.Interfaces;
 using ThunderHerd.Domain.Interfaces;
 
@@ -46,20 +43,12 @@ namespace ThunderHerd.Domain.Services
             }
         }
 
-        public async IAsyncEnumerable<TestResultItem> FindTestResultItemsByTestResultId(Guid testResultId)
+        public async Task<IEnumerable<TestResultGroup>> GroupTestResultItemsByTime(Guid testResultId, TimeSpan timespan)
         {
-            await foreach (var entity in _testResultItemRepository.GetTestResultItems(testResultId))
-            {
-                yield return TestResultItem.Map(entity);
-            }
-        }
-
-        public IAsyncEnumerable<TestResultGroup> GroupTestResultItemsByTime(Guid testResultId, TimeSpan timespan)
-        {
-            return _testResultItemRepository
-                            .GetTestResultItems(testResultId)
-                            .GroupBy(p => p.Ticks / timespan.Ticks, TestResultItem.Map)
-                            .SelectAwait(async p => await TestResultGroup.Map(p));
+            var items = await _testResultItemRepository.GetTestResultItemsAsync(testResultId);
+            return items
+                    .GroupBy(p => p.Ticks / timespan.Ticks, TestResultItem.Map)
+                    .Select(TestResultGroup.Map);
         }
 
         public async Task CreateTestResultItem(TestResultItem testResultItem, CancellationToken cancellationToken)
