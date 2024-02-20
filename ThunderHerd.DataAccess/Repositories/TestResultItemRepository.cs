@@ -11,7 +11,16 @@ namespace ThunderHerd.DataAccess.Repositories
 
         public async Task<IEnumerable<TestResultItem>> GetTestResultItemsAsync(Guid testResultId)
         {
-            return await _set.Where(p => p.TestResultId == testResultId).ToListAsync();
+            return await GetTestResultItemsAsync(testResultId, false);
+        }
+
+        public async Task<IEnumerable<TestResultItem>> GetTestResultItemsAsync(Guid testResultId, bool asNoTracking)
+        {
+            var query = _set.Where(p => p.TestResultId == testResultId);
+
+            return asNoTracking
+                ? await query.AsNoTracking().ToListAsync()
+                : await query.ToListAsync();
         }
     }
 }

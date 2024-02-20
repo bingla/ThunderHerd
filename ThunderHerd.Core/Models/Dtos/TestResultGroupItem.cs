@@ -6,7 +6,6 @@ namespace ThunderHerd.Core.Models.Dtos
     public class TestResultGroupItem
     {
         public HttpMethods Method { get; set; }
-        public string Name { get; set; }
         public string? Host { get; set; }
         public string? Url { get; set; }
         public string? Query { get; set; }
@@ -28,9 +27,9 @@ namespace ThunderHerd.Core.Models.Dtos
         public decimal ErrorAvgResponseTime { get; set; }
 
 
-        public static TestResultGroupItem Map(IGrouping<string, TestResultItem> group)
+        public static TestResultGroupItem Map(IGrouping<string?, TestResultItem> group)
         {
-            var entity = group.FirstOrDefault();
+            var entity = group.First();
             var successes = group.Where(p => !p.IsFaulty);
             var errors = group.Where(p => p.IsFaulty);
             var successCount = successes.Count();

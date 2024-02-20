@@ -45,8 +45,10 @@ namespace ThunderHerd.Domain.Services
 
         public async Task<IEnumerable<TestResultGroup>> GroupTestResultItemsByTime(Guid testResultId, TimeSpan timespan)
         {
-            var items = await _testResultItemRepository.GetTestResultItemsAsync(testResultId);
+            var items = await _testResultItemRepository.GetTestResultItemsAsync(testResultId, true);
+
             return items
+                    .OrderBy(p => p.Ticks)
                     .GroupBy(p => p.Ticks / timespan.Ticks, TestResultItem.Map)
                     .Select(TestResultGroup.Map);
         }

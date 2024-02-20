@@ -37,29 +37,29 @@ namespace ThunderHerd.Domain.Services
             ArgumentNullException.ThrowIfNull(test, nameof(test));
 
             // Clamp values to min and max
-            var runDurationInMinutes = test.RunDurationInMinutes > 0
-                ? test.RunDurationInMinutes
+            var runDurationInSeconds = test.RunDurationInSeconds > 0
+                ? test.RunDurationInSeconds
                 : 0;
-            runDurationInMinutes = runDurationInMinutes > _options.Value.MaxRunDurationInMinutes
-                ? _options.Value.MaxRunDurationInMinutes
-                : test.RunDurationInMinutes;
+            runDurationInSeconds = runDurationInSeconds > _options.Value.MaxRunDurationInSeconds
+                ? _options.Value.MaxRunDurationInSeconds
+                : test.RunDurationInSeconds;
 
-            var warmupDurationMinutes = test.WarmupDurationInMinutes > 0
-                ? test.WarmupDurationInMinutes
+            var warmupDurationSeconds = test.WarmupDurationInSeconds > 0
+                ? test.WarmupDurationInSeconds
                 : 0;
-            warmupDurationMinutes = warmupDurationMinutes > _options.Value.MaxWarmupDurationInMinutes
-                ? _options.Value.MaxWarmupDurationInMinutes
-                : test.WarmupDurationInMinutes;
+            warmupDurationSeconds = warmupDurationSeconds > _options.Value.MaxWarmupDurationInSeconds
+                ? _options.Value.MaxWarmupDurationInSeconds
+                : test.WarmupDurationInSeconds;
 
             // Make sure that the total duration is at least as large as the
             // warmup phase
-            runDurationInMinutes = warmupDurationMinutes > runDurationInMinutes
-                ? warmupDurationMinutes
-                : runDurationInMinutes;
+            runDurationInSeconds = warmupDurationSeconds > runDurationInSeconds
+                ? warmupDurationSeconds
+                : runDurationInSeconds;
 
             // Calculate the total run time
-            var runDuration = TimeSpan.FromMinutes(runDurationInMinutes);
-            var warmupDuration = TimeSpan.FromMinutes(warmupDurationMinutes);
+            var runDuration = TimeSpan.FromSeconds(runDurationInSeconds);
+            var warmupDuration = TimeSpan.FromSeconds(warmupDurationSeconds);
             var warmupDurationInSeconds = warmupDuration.TotalSeconds;
 
             // Clamp callsPerSecond to min and max values
@@ -99,8 +99,10 @@ namespace ThunderHerd.Domain.Services
                 TestId = test.Id,
                 RunStarted = runStart,
                 WarmupDuration = warmupDuration,
+                Status = Core.Enums.TestStatus.Running
             };
             testResult = await _testResultService.CreateTestResultAsync(testResult, cancellationToken);
+            ArgumentNullException.ThrowIfNull(testResult);
 
             // Begin the test run
             // Add at least one call step
@@ -129,6 +131,14 @@ namespace ThunderHerd.Domain.Services
             }
             while (runEnd > DateTime.Now && !cancellationToken.IsCancellationRequested);
 
+            // If cancellation has been requested, stop everything and exit
+            if (cancellationToken.IsCancellationRequested)
+            {
+                testResult.Status = Core.Enums.TestStatus.Cancelled;
+                testResult = await _testResultService.UpdateTestResultAsync(testResult, CancellationToken.None);
+                return;
+            }
+
             // Wait until all requests has been returned
             var responseList = await Task.WhenAll(tasks);
 
@@ -139,17 +149,8 @@ namespace ThunderHerd.Domain.Services
             testResult.RunCompleted = runEnd;
             testResult.RunDuration = runEnd - runStart;
             testResult.WarmupDuration = warmupDuration;
-
+            testResult.Status = Core.Enums.TestStatus.Completed;
             testResult = await _testResultService.UpdateTestResultAsync(testResult, cancellationToken);
-
-            // Group and calculate results
-            //var timeSpan = TimeSpan.FromSeconds(_options.Value.TimeSlotSpanInSeconds);
-            //var resultList = responseList
-            //    .OrderBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks)
-            //    .GroupBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks, p => p)
-            //    .Select(p => TestResult.TestResultSlotItem.Map(p, timeSpan))
-            //    .OrderBy(p => p.Tick)
-            //    .ToHashSet();
 
             // Map Results
             var timeSpan = TimeSpan.FromSeconds(_options.Value.TimeSlotSpanInSeconds);

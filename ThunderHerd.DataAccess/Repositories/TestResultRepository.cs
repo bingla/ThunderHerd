@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ThunderHerd.Core.Entities;
+using ThunderHerd.Core.Enums;
 using ThunderHerd.DataAccess.Interfaces;
 
 namespace ThunderHerd.DataAccess.Repositories
