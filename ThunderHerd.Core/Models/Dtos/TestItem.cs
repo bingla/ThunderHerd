@@ -15,7 +15,6 @@ namespace ThunderHerd.Core.Models.Dtos
 
             return new TestItem
             {
-                //Id = Guid.NewGuid(),
                 Method = item.Method,
                 Url = item.Url,
             };

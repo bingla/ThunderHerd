@@ -10,10 +10,11 @@ namespace ThunderHerd.DataAccess.Extensions
             builder
                 .Entity<Test>()
                 .HasKey(p => p.Id);
-            //.Property(p => p.Id)
-            //.HasConversion(
-            //    value => value.Id,
-            //    value => new RunId(value));
+
+            builder
+                .Entity<Test>()
+                .Property(p => p.Id)
+                .ValueGeneratedOnAdd();
 
             builder
                 .Entity<Test>()
@@ -33,10 +34,11 @@ namespace ThunderHerd.DataAccess.Extensions
             builder
                 .Entity<TestItem>()
                 .HasKey(p => p.Id);
-            //.Property(p => p.Id)
-            //.HasConversion(
-            //    value => value.Id,
-            //    value => new TestItemId(value));
+
+            builder
+                .Entity<TestItem>()
+                .Property(p => p.Id)
+                .ValueGeneratedOnAdd();
 
             return builder;
         }
@@ -46,6 +48,11 @@ namespace ThunderHerd.DataAccess.Extensions
             builder
                 .Entity<Schedule>()
                 .HasKey(p => p.Id);
+
+            builder
+                .Entity<Schedule>()
+                .Property(p => p.Id)
+                .ValueGeneratedOnAdd();
 
             builder.Entity<Schedule>()
                 .HasOne(p => p.Test);
@@ -59,6 +66,11 @@ namespace ThunderHerd.DataAccess.Extensions
                 .Entity<TestResult>()
                 .HasKey(p => p.Id);
 
+            builder
+                .Entity<TestResult>()
+                .Property(p => p.Id)
+                .ValueGeneratedOnAdd();
+
             return builder;
         }
         public static ModelBuilder BuildTestResultItem(this ModelBuilder builder)
@@ -66,6 +78,11 @@ namespace ThunderHerd.DataAccess.Extensions
             builder
                 .Entity<TestResultItem>()
                 .HasKey(p => p.Id);
+
+            builder
+                .Entity<TestResultItem>()
+                .Property(p => p.Id)
+                .ValueGeneratedOnAdd();
 
             return builder;
         }

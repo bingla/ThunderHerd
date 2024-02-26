@@ -16,7 +16,7 @@ namespace ThunderHerd.DataAccess.Repositories
 
         public async Task<IEnumerable<TestResultItem>> GetTestResultItemsAsync(Guid testResultId, bool asNoTracking)
         {
-            var query = _set.Where(p => p.TestResultId == testResultId);
+            var query = _context.TestResultItem.Where(p => p.TestResultId == testResultId);
 
             return asNoTracking
                 ? await query.AsNoTracking().ToListAsync()

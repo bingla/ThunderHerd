@@ -2,7 +2,7 @@
 {
     public class Test
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.Empty;
         public int CallsPerSecond { get; set; } = 1;
         public int RunDurationInSeconds { get; set; } = 1;
         public int WarmupDurationInSeconds { get; set; }

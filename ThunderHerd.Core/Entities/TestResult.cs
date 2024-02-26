@@ -4,7 +4,7 @@ namespace ThunderHerd.Core.Entities
 {
     public class TestResult
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.Empty;
         public Guid TestId { get; set; }
         public DateTime RunStarted { get; set; }
         public DateTime RunCompleted { get; set; }

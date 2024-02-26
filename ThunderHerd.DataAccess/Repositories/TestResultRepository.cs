@@ -12,7 +12,7 @@ namespace ThunderHerd.DataAccess.Repositories
 
         public IAsyncEnumerable<TestResult> GetTestResultsByTestId(Guid testId)
         {
-            return _set
+            return _context.TestResult
                 .Where(p => p.TestId == testId)
                 .AsAsyncEnumerable();
         }
