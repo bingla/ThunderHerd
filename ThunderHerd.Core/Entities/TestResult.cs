@@ -14,6 +14,9 @@ namespace ThunderHerd.Core.Entities
 
         public static TestResult Map(Models.Dtos.TestResult entity)
         {
+            if (entity == default)
+                return default;
+
             return new TestResult
             {
                 Id = entity.Id,

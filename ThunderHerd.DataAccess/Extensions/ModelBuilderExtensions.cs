@@ -26,6 +26,7 @@ namespace ThunderHerd.DataAccess.Extensions
                 .Navigation(p => p.TestItems)
                 .AutoInclude();
 
+
             return builder;
         }
 
@@ -83,6 +84,35 @@ namespace ThunderHerd.DataAccess.Extensions
                 .Entity<TestResultItem>()
                 .Property(p => p.Id)
                 .ValueGeneratedOnAdd();
+
+            return builder;
+        }
+
+        public static ModelBuilder BuildSchedule(this ModelBuilder builder)
+        {
+            builder
+                .Entity<Schedule>()
+                .HasKey(p => p.Id);
+
+            builder.Entity<Schedule>()
+                .HasOne(p => p.Test);
+
+            return builder;
+        }
+
+        public static ModelBuilder BuildTestResult(this ModelBuilder builder)
+        {
+            builder
+                .Entity<TestResult>()
+                .HasKey(p => p.Id);
+
+            return builder;
+        }
+        public static ModelBuilder BuildTestResultItem(this ModelBuilder builder)
+        {
+            builder
+                .Entity<TestResultItem>()
+                .HasKey(p => p.Id);
 
             return builder;
         }

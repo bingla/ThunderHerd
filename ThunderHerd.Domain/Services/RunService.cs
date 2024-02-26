@@ -153,6 +153,15 @@ namespace ThunderHerd.Domain.Services
             testResult = await _testResultService.UpdateTestResultAsync(testResult, cancellationToken);
 
             // Map Results
+            //var timeSpan = TimeSpan.FromSeconds(_options.Value.TimeSlotSpanInSeconds);
+            //var resultList = responseList
+            //    .OrderBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks)
+            //    .GroupBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks, p => p)
+            //    .Select(p => TestResult.TestResultSlotItem.Map(p, timeSpan))
+            //    .OrderBy(p => p.Tick)
+            //    .ToHashSet();
+
+            // Map Results
             var timeSpan = TimeSpan.FromSeconds(_options.Value.TimeSlotSpanInSeconds);
             var testResultItems = responseList
                     .OrderBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)))

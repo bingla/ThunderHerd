@@ -6,6 +6,7 @@ namespace ThunderHerd.Core.Models.Dtos
     public class TestResultGroupItem
     {
         public HttpMethods Method { get; set; }
+        public string Name { get; set; }
         public string? Host { get; set; }
         public string? Url { get; set; }
         public string? Query { get; set; }
