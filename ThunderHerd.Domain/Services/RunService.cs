@@ -44,23 +44,22 @@ namespace ThunderHerd.Domain.Services
                 ? _options.Value.MaxRunDurationInSeconds
                 : test.RunDurationInSeconds;
 
-            var warmupDurationSeconds = test.WarmupDurationInSeconds > 0
+            var warmupDurationInSeconds = test.WarmupDurationInSeconds > 0
                 ? test.WarmupDurationInSeconds
                 : 0;
-            warmupDurationSeconds = warmupDurationSeconds > _options.Value.MaxWarmupDurationInSeconds
+            warmupDurationInSeconds = warmupDurationInSeconds > _options.Value.MaxWarmupDurationInSeconds
                 ? _options.Value.MaxWarmupDurationInSeconds
                 : test.WarmupDurationInSeconds;
 
             // Make sure that the total duration is at least as large as the
             // warmup phase
-            runDurationInSeconds = warmupDurationSeconds > runDurationInSeconds
-                ? warmupDurationSeconds
+            runDurationInSeconds = warmupDurationInSeconds > runDurationInSeconds
+                ? warmupDurationInSeconds
                 : runDurationInSeconds;
 
             // Calculate the total run time
             var runDuration = TimeSpan.FromSeconds(runDurationInSeconds);
-            var warmupDuration = TimeSpan.FromSeconds(warmupDurationSeconds);
-            var warmupDurationInSeconds = warmupDuration.TotalSeconds;
+            var warmupDuration = TimeSpan.FromSeconds(warmupDurationInSeconds);
 
             // Clamp callsPerSecond to min and max values
             var callsPerSecond = test.CallsPerSecond > 1
@@ -77,8 +76,8 @@ namespace ThunderHerd.Domain.Services
             if (warmupDurationInSeconds > 0)
             {
                 numCallsToAddPerSecond = callsPerSecond / warmupDurationInSeconds > 0
-                ? callsPerSecond / warmupDurationInSeconds // Calculate calls with warmup
-                : callsPerSecond; // Calculate with no warmup
+                ? callsPerSecond / warmupDurationInSeconds // Calculate calls per second with warmup
+                : callsPerSecond; // Calculate calls per second without warmup
             }
 
             // Create new request options for httpClient
@@ -116,10 +115,14 @@ namespace ThunderHerd.Domain.Services
                 if (step == 0 || (runStart + TimeSpan.FromSeconds(step) < DateTime.Now))
                 {
                     // Make calls and add to task list
-                    tasks.AddRange(MakeRequest(callStep, numCallsToAddPerSecond,
-                        test.TestItems, requestSettings, cancellationToken));
+                    tasks.AddRange(
+                        MakeRequest(callStep,
+                        numCallsToAddPerSecond,
+                        test.TestItems,
+                        requestSettings,
+                        cancellationToken));
 
-                    // If we have reached the max number of calls her second, we stop at that callStep
+                    // If we have reached the max number of calls per second, we stop at that callStep
                     // and don't increase it any further since we don't want to increase the calls each step anymore
                     if (callStep * numCallsToAddPerSecond <= callsPerSecond)
                     {
@@ -131,10 +134,14 @@ namespace ThunderHerd.Domain.Services
             }
             while (runEnd > DateTime.Now && !cancellationToken.IsCancellationRequested);
 
-            // If cancellation has been requested, stop everything and exit
+            // Set the runtime if the call was cancelled instead of allowed to run to it's conclusion
+            runEnd = DateTime.Now;
+
+            // If cancellation has been requested; stop everything, save what we can and exit quickly
             if (cancellationToken.IsCancellationRequested)
             {
                 testResult.Status = Core.Enums.TestStatus.Cancelled;
+                testResult.RunDuration = runEnd - runStart;
                 testResult = await _testResultService.UpdateTestResultAsync(testResult, CancellationToken.None);
                 return;
             }
@@ -142,26 +149,17 @@ namespace ThunderHerd.Domain.Services
             // Wait until all requests has been returned
             var responseList = await Task.WhenAll(tasks);
 
-            // Set the runtime if the call was cancelled instead of allowed to run to it's conclusion
+            // Set the runtime after all requests has finished
             runEnd = DateTime.Now;
 
-            // Update testresult and save to DB
+            // Update test result and save to DB
             testResult.RunCompleted = runEnd;
             testResult.RunDuration = runEnd - runStart;
             testResult.WarmupDuration = warmupDuration;
             testResult.Status = Core.Enums.TestStatus.Completed;
             testResult = await _testResultService.UpdateTestResultAsync(testResult, cancellationToken);
 
-            // Map Results
-            //var timeSpan = TimeSpan.FromSeconds(_options.Value.TimeSlotSpanInSeconds);
-            //var resultList = responseList
-            //    .OrderBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks)
-            //    .GroupBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)) / timeSpan.Ticks, p => p)
-            //    .Select(p => TestResult.TestResultSlotItem.Map(p, timeSpan))
-            //    .OrderBy(p => p.Tick)
-            //    .ToHashSet();
-
-            // Map Results
+            // Map each individual test result
             var timeSpan = TimeSpan.FromSeconds(_options.Value.TimeSlotSpanInSeconds);
             var testResultItems = responseList
                     .OrderBy(p => long.Parse(p.RequestMessage.GetHeaderValue(Globals.HeaderNames.StartTimeInTicks)))

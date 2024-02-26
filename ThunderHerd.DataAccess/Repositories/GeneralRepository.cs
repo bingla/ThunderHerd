@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
+using ThunderHerd.DataAccess.Extensions;
 using ThunderHerd.DataAccess.Interfaces;
 
 namespace ThunderHerd.DataAccess.Repositories
@@ -41,7 +42,8 @@ namespace ThunderHerd.DataAccess.Repositories
                 return default;
             }
 
-            _set.Entry(oldItem).CurrentValues.SetValues(newItem);
+            //_set.Entry(oldItem).CurrentValues.SetValues(newItem);
+            _context.UpdateProperties(oldItem, newItem);
             _ = _context.SaveChangesAsync(cancellationToken);
             return oldItem;
         }
