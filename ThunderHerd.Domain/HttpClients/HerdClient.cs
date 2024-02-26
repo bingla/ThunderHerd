@@ -20,7 +20,7 @@ namespace ThunderHerd.Domain.HttpClients
             // Set the client timeout to double the max runtime duration
             // TODO: Setting the client timeout so high might degrade performance, look into how long a connection is considered
             // "open" when tasks are put on queue.
-            _httpClient.Timeout = TimeSpan.FromMinutes(_options.Value.MaxRunDurationInMinutes * 2);
+            _httpClient.Timeout = TimeSpan.FromMinutes(_options.Value.MaxRunDurationInSeconds * 2);
         }
 
         public Task<HttpResponseMessage> SendAsync(string url, HttpMethods method = HttpMethods.GET, HerdClientRequestSettings? settings = default, CancellationToken cancellationToken = default)

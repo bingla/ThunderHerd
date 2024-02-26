@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ThunderHerd.Core.Entities;
+using ThunderHerd.Core.Enums;
 using ThunderHerd.DataAccess.Interfaces;
 
 namespace ThunderHerd.DataAccess.Repositories
@@ -11,7 +12,7 @@ namespace ThunderHerd.DataAccess.Repositories
 
         public IAsyncEnumerable<TestResult> GetTestResultsByTestId(Guid testId)
         {
-            return _set
+            return _context.TestResult
                 .Where(p => p.TestId == testId)
                 .AsAsyncEnumerable();
         }

@@ -22,8 +22,8 @@ namespace ThunderHerd.Core.Models.Responses
             {
                 Id = entity.Id,
                 CallsPerSecond = entity.CallsPerSecond,
-                RunDurationInMinutes = entity.RunDurationInMinutes,
-                WarmupDurationInMinutes = entity.WarmupDurationInMinutes,
+                RunDurationInMinutes = entity.RunDurationInSeconds,
+                WarmupDurationInMinutes = entity.WarmupDurationInSeconds,
                 TestCollection = entity.TestItems.Select(TestItem.Map).ToHashSet(),
             };
         }

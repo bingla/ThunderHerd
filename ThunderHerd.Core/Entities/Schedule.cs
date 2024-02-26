@@ -2,7 +2,7 @@
 {
     public class Schedule
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; init; } = Guid.Empty;
         public Guid TestId { get; set; }
         public bool Recurring { get; set; } = false;
         public string? CronSchedule { get; set; }

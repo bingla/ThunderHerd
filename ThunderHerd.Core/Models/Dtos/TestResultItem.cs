@@ -21,7 +21,7 @@ namespace ThunderHerd.Core.Models.Dtos
         public static TestResultItem Map(Guid testResultId, HttpResponseMessage response)
         {
             var headerName = Globals.HeaderNames.ElapsedTimeInMilliseconds;
-            var uri = response?.RequestMessage?.RequestUri;
+            var uri = response?.RequestMessage?.RequestUri ?? throw new ArgumentNullException(nameof(response.RequestMessage.RequestUri));
 
             var tick = response.RequestMessage.TryGetHeaderValue(Globals.HeaderNames.StartTimeInTicks, out var tickValue)
                 ? long.Parse(tickValue?.FirstOrDefault() ?? "0")

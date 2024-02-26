@@ -6,8 +6,8 @@ namespace ThunderHerd.Core.Models.Dtos
     {
         public Guid Id { get; set; }
         public int CallsPerSecond { get; set; } = 1;
-        public int RunDurationInMinutes { get; set; } = 1;
-        public int WarmupDurationInMinutes { get; set; }
+        public int RunDurationInSeconds { get; set; } = 1;
+        public int WarmupDurationInSeconds { get; set; }
 
         public IEnumerable<TestItem> TestItems { get; init; } = new HashSet<TestItem>();
 
@@ -18,8 +18,8 @@ namespace ThunderHerd.Core.Models.Dtos
             return new Test
             {
                 CallsPerSecond = request.CallsPerSecond,
-                RunDurationInMinutes = request.RunDurationInMinutes,
-                WarmupDurationInMinutes = request.WarmupDurationInMinutes,
+                RunDurationInSeconds = request.RunDurationInSeconds,
+                WarmupDurationInSeconds = request.WarmupDurationInSeconds,
                 TestItems = request.TestCollection.Select(TestItem.Map).ToHashSet(),
             };
         }
@@ -33,8 +33,8 @@ namespace ThunderHerd.Core.Models.Dtos
             {
                 Id = entity.Id,
                 CallsPerSecond = entity.CallsPerSecond,
-                RunDurationInMinutes = entity.RunDurationInMinutes,
-                WarmupDurationInMinutes = entity.WarmupDurationInMinutes,
+                RunDurationInSeconds = entity.RunDurationInSeconds,
+                WarmupDurationInSeconds = entity.WarmupDurationInSeconds,
                 TestItems = entity.TestItems.Select(TestItem.Map),
             };
         }

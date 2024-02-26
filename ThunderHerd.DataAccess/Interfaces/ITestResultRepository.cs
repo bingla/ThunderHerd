@@ -1,4 +1,5 @@
 ﻿using ThunderHerd.Core.Entities;
+using ThunderHerd.Core.Enums;
 
 namespace ThunderHerd.DataAccess.Interfaces
 {

@@ -2,10 +2,10 @@
 {
     public class Test
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.Empty;
         public int CallsPerSecond { get; set; } = 1;
-        public int RunDurationInMinutes { get; set; } = 1;
-        public int WarmupDurationInMinutes { get; set; }
+        public int RunDurationInSeconds { get; set; } = 1;
+        public int WarmupDurationInSeconds { get; set; }
 
         public IEnumerable<TestItem> TestItems { get; init; } = new HashSet<TestItem>();
 
@@ -15,8 +15,8 @@
             {
                 Id = entity.Id,
                 CallsPerSecond = entity.CallsPerSecond,
-                RunDurationInMinutes = entity.RunDurationInMinutes,
-                WarmupDurationInMinutes = entity.WarmupDurationInMinutes,
+                RunDurationInSeconds = entity.RunDurationInSeconds,
+                WarmupDurationInSeconds = entity.WarmupDurationInSeconds,
                 TestItems = entity.TestItems.Select(TestItem.Map).ToHashSet(),
             };
         }

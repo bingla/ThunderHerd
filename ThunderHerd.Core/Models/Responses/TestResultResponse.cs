@@ -11,6 +11,8 @@ namespace ThunderHerd.Core.Models.Responses
         public DateTime RunCompleted { get; set; }
         public TimeSpan RunDuration { get; set; }
         public TimeSpan WarmupDuration { get; set; }
+        public TestStatus Status { get; set; } = TestStatus.NA;
+
         public long NumTotalCalls { get; set; }
         public long NumSuccessCalls { get; set; }
         public long NumErrorCalls { get; set; }
@@ -28,10 +30,7 @@ namespace ThunderHerd.Core.Models.Responses
                 RunCompleted = entity.RunCompleted,
                 RunDuration = entity.RunDuration,
                 WarmupDuration = entity.WarmupDuration,
-
-                NumTotalCalls = entity.NumTotalCalls,
-                NumSuccessCalls = entity.NumSuccessCalls,
-                NumErrorCalls = entity.NumErrorCalls,
+                Status = entity.Status
             };
         }
 

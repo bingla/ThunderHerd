@@ -59,6 +59,7 @@ namespace ThunderHerd.Domain.Services
             else
             {
                 // TODO: Schedule to run on cron job
+
             }
 
             return Task.CompletedTask;

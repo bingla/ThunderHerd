@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using ThunderHerd.DataAccess.Interfaces;
 
 namespace ThunderHerd.DataAccess.Repositories
@@ -6,14 +7,12 @@ namespace ThunderHerd.DataAccess.Repositories
     public class GeneralRepository<T> : IGeneralRepository<T> where T : class
     {
         protected readonly ThunderHerdContext _context;
-        protected readonly DbSet<T> _set;
-        protected readonly string _setName;
+        private readonly DbSet<T> _set;
 
         public GeneralRepository(ThunderHerdContext context)
         {
             _context = context;
             _set = context.Set<T>();
-            _setName = _set.EntityType.Name;
         }
 
         public ValueTask<T?> FindAsync(object id, CancellationToken cancellationToken = default)

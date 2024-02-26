@@ -12,6 +12,7 @@ namespace ThunderHerd.Core.Models.Dtos
         public DateTime RunCompleted { get; set; }
         public TimeSpan RunDuration { get; set; }
         public TimeSpan WarmupDuration { get; set; }
+        public TestStatus Status { get; set; } = TestStatus.NA;
 
         public long NumTotalCalls => NumSuccessCalls + NumErrorCalls;
         public long NumSuccessCalls => TimeSlotCollection.Sum(p => p.ResultGroupCollection.Sum(e => e.SuccessCount));
@@ -31,6 +32,7 @@ namespace ThunderHerd.Core.Models.Dtos
                 RunCompleted = entity.RunCompleted,
                 RunDuration = entity.RunDuration,
                 WarmupDuration = entity.WarmupDuration,
+                Status = entity.Status,
             };
         }
 

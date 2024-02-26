@@ -6,8 +6,8 @@ namespace ThunderHerd.Core.Models.Requests
     public class TestCreateRequest
     {
         public int CallsPerSecond { get; set; } = 1;
-        public int RunDurationInMinutes { get; set; }
-        public int WarmupDurationInMinutes { get; set; }
+        public int RunDurationInSeconds { get; set; }
+        public int WarmupDurationInSeconds { get; set; }
 
         [Required]
         public IEnumerable<TestItem> TestCollection { get; init; } = new HashSet<TestItem>();
